@@ -1,0 +1,8 @@
+// With this function, to refer to the CSS vars containing our colors, we can
+// use for example:
+// color(header-background)
+// instead of
+// var(--color-header-background)
+@function color($color-name) {
+  @return var(--color-#{$color-name});
+}

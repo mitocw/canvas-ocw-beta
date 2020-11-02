@@ -1,0 +1,14 @@
+@use '../styles/functions/color';
+
+.context {
+  margin-top: 2rem;
+  padding: 0.25rem 1rem 0.25rem 1rem;
+  background: color.color(context-background);
+  color: color.color(context-foreground);
+  font-size: 14px;
+
+  &__link {
+    color: color.color(context-link);
+    margin-right: 2rem;
+  }
+}

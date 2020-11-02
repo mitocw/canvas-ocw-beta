@@ -1,0 +1,27 @@
+@use '../styles/functions/color';
+@use '../styles/colors';
+@use '@material/textfield';
+
+.home {
+  padding: 1rem;
+  background: color.color(main-background);
+  min-height: 35rem;
+  
+  .home__search {
+    @include textfield.fill-color(colors.$white);
+    @include textfield.ink-color(colors.$black);
+    @include textfield.placeholder-color(colors.$boulder);
+    @include textfield.outline-color(colors.$white);
+    @include textfield.focused-outline-color(colors.$white);
+    @include textfield.hover-outline-color(colors.$white);
+    @include textfield.height(36px); // 2.25rem
+    @include textfield.outlined-height(36px);
+    min-width: 38rem;
+    margin-right: 2.1rem;
+  }
+
+  &__loading-message, &__results-message, &__error-message {
+    font-size: 14px;
+    margin : 0.5rem 0;
+  }
+}

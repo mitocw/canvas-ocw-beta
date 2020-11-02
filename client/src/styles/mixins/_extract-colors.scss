@@ -1,0 +1,15 @@
+// Extracts colors from a nested palette map, as defined in _colors.scss for example
+// and assigns it to CSS variables
+@mixin extract-colors($palette) {
+  // Iterate through each item in nested palette map
+  @each $key, $value in $palette {
+    @if type-of($value) == 'color' {
+      --color-#{$key}: #{$value};
+    }
+    @else {
+      @each $subkey, $subvalue in $value {
+        --color-#{$key}-#{$subkey}: #{$subvalue};
+      }
+    }
+  }
+}

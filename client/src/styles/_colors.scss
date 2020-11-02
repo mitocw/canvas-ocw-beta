@@ -1,0 +1,43 @@
+@use 'sass:color';
+// Color names come from the following sites:
+// http://chir.ag/projects/name-that-color
+
+// Our current palette
+// The names come from the following site: chir.ag/projects/name-that-color
+$white: #ffffff;
+$black: #000000;
+$black-20: rgba(0, 0, 0, 0.2);
+$black-87: rgba(0, 0, 0, 0.87);
+$boulder: #777777;
+$sea-shell: #f1f1f1;
+$alabaster: #fafafa;
+$alizarin-crimson: #e13022;
+$burnt-sienna: #eb5757;
+
+// Sass nested palette maps, use quotes otherwise messes up with CSS values
+$default-palette: (
+  'header': (
+    'background':   $alizarin-crimson,
+    'foreground':   $white
+  ),
+  'main': (
+    'background':   $sea-shell
+  ),
+  'context': (
+    'background': $white,
+    'foreground': $black,
+    'link': $burnt-sienna
+  ),
+  'card': (
+    'background': $alabaster,
+    'border': $black-20,
+    'duration': $boulder,
+    'button-foreground': $burnt-sienna,
+    'disabled-button-foreground': color.scale($burnt-sienna, $alpha: -50%)
+  ),
+  'footer': (
+    'background':   $black,
+    'foreground-1': $white,
+    'foreground-2': $burnt-sienna
+  ),
+);

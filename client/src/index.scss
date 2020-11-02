@@ -1,0 +1,84 @@
+@use './styles/colors';
+@use './styles/mixins/extract-colors';
+@use './styles/functions/color';
+
+// Assign our Sass colors to CSS variables
+:root {
+  @include extract-colors.extract-colors(colors.$default-palette);
+}
+
+// https://css-tricks.com/simplified-fluid-typography/
+// Size varies gradually from 14px on a 320px screen to 16px on a 1000px screen
+// @media screen and (min-width: 320px) {
+//   html {
+//     font-size: calc(14px + 2 * ((100vw - 320px) / 680));
+//   }
+// }
+// @media screen and (min-width: 1000px) {
+//   html {
+//     font-size: 16px;
+//   }
+// }
+
+// We use line-height =  1.5 * font-size
+html, body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 3rem;
+  color: colors.$black-87;
+}
+
+h2 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.75rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 2.625rem;
+  color: colors.$black-87;
+}
+
+h3 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 2.25rem;
+  color: colors.$black-87;
+}
+
+h4 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.875rem;
+  color: colors.$black-87;
+}
+
+a {
+  color: colors.$alizarin-crimson;
+  text-decoration: none;
+  
+  &:visited {
+    color: colors.$burnt-sienna;
+  }
+  
+  &:hover {
+    color: colors.$burnt-sienna;
+    text-decoration: underline; 
+  }
+  
+  &:active {
+    color: colors.$burnt-sienna;
+  }
+}
