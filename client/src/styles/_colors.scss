@@ -6,6 +6,8 @@
 // The names come from the following site: chir.ag/projects/name-that-color
 $white: #ffffff;
 $black: #000000;
+$black-12: rgba(0, 0, 0, 0.12);
+$black-14: rgba(0, 0, 0, 0.14);
 $black-20: rgba(0, 0, 0, 0.2);
 $black-87: rgba(0, 0, 0, 0.87);
 $boulder: #777777;
@@ -13,6 +15,8 @@ $sea-shell: #f1f1f1;
 $alabaster: #fafafa;
 $alizarin-crimson: #e13022;
 $burnt-sienna: #eb5757;
+$mine-shaft: #252525;
+$emperor: #555555;
 
 // Sass nested palette maps, use quotes otherwise messes up with CSS values
 $default-palette: (
@@ -29,6 +33,9 @@ $default-palette: (
     'link': $burnt-sienna
   ),
   'card': (
+    'title': $mine-shaft,
+    'title-hover': $emperor,
+    'instructors': $emperor,
     'background': $alabaster,
     'border': $black-20,
     'duration': $boulder,

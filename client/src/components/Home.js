@@ -3,7 +3,7 @@ import { Button } from '@rmwc/button';
 import { TextField } from '@rmwc/textfield';
 import searchService from '../core/services/SearchService';
 import shortid from '../utils/shortid';
-import VideoCard from './VideoCard';
+import CoursewareCard from './CoursewareCard';
 import Context from './Context';
 import './Home.scss';
 
@@ -12,13 +12,13 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [videos, setVideos] = useState({});
+  const [coursewares, setCoursewares] = useState({});
   const [resultsMessage, setResultsMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showContext, setShowContext ] = useState(true);
   
   useEffect(() => {
-    const loadVideos = async () => {
+    const loadCoursewares = async () => {
       setResultsMessage('');
       setErrorMessage('');
       setIsLoading(true);
@@ -26,11 +26,11 @@ export default function Home() {
       try {
         // Do not send a request for an empty string
         if (search) {
-          const videos = await searchService.search(search);
+          const coursewares = await searchService.search(search);
           setShowContext(false);
-          setVideos(videos);
-          setResultsMessage(Object.keys(videos).length > 0 ?
-            'Top 8 results from the OCW YouTube channel. Load more below.' :
+          setCoursewares(coursewares);
+          setResultsMessage(Object.keys(coursewares).length > 0 ?
+            'Results from MIT\'s Canvas.' :
             `Sorry, we didn’t find any results for "${search}" term.`
           );
         }
@@ -40,7 +40,7 @@ export default function Home() {
       }
       setIsLoading(false);
     };
-    loadVideos();
+    loadCoursewares();
   }, [search]);
 
   const inputChange = (event) => setQuery(event.currentTarget.value);
@@ -69,14 +69,12 @@ export default function Home() {
       </div>
     );
   } else {
-    const videosEl = Object.keys(videos).map((key) => (
-      <VideoCard
-        description={videos[key].description}
-        duration={videos[key].duration}
-        id={key}
+    const coursewaresEl = Object.keys(coursewares).map((key) => (
+      <CoursewareCard
         key={shortid()}
-        thumbnail={videos[key].thumbnail}
-        title={videos[key].title}
+        title={coursewares[key].name}
+        url={coursewares[key].url}
+        instructors={coursewares[key].teachers}
       />
     ));
     resultsEl = (
@@ -84,7 +82,10 @@ export default function Home() {
         <div className="home__results-message">
           {resultsMessage}
         </div>
-        {videosEl}
+        <div>
+          {coursewaresEl}
+        </div>
+        
       </>
     );
   }
@@ -93,7 +94,7 @@ export default function Home() {
     <main className="home">
       <TextField
         className="home__search"
-        placeholder="Find educational videos from across MIT"
+        placeholder="Find courseware by instructor from across MIT's Canvas"
         outlined
         value={query}
         onChange={inputChange}

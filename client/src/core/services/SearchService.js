@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import { Videos } from '../models/Videos';
+import { Courseware } from '../models/Courseware';
 
 export class SearchService {
     endpoint = '/search';
@@ -10,7 +10,7 @@ export class SearchService {
         const url = `${this.endpoint}`;
         return httpClient.post(url, formData)
             .then(response => {
-                return new Videos(response.data);
+                return response.data.map(courseware => new Courseware(courseware));
             });
     }
 }

@@ -1,6 +1,5 @@
 import os
 import requests
-from isodate import parse_duration
 from flask import current_app, Flask, jsonify, make_response, redirect, render_template, request
 from jinja2 import Template
 from string import Template as Temp
@@ -32,33 +31,93 @@ def index():
 def search():
     result = []
     if request.method == 'POST':
-        # Instantiate the client with an endpoint.
+        # Instantiate graphql client with Contentful's endpoint
         bearer_token = Temp('Bearer $token')
+        endpoint = Temp('https://graphql.contentful.com/content/v1/spaces/$space_id')
         headers = {
-            'Authorization': bearer_token.substitute(token=current_app.config['CANVAS_API_KEY'])
+            'Authorization': bearer_token.substitute(token=current_app.config['CONTENTFUL_CPA_TOKEN'])
         }
         client = GraphqlClient(
-            endpoint='https://canvas.instructure.com/api/graphql',
+            endpoint=endpoint.substitute(space_id=current_app.config['CONTENTFUL_SPACE_ID']),
             headers=headers
         )
-        # Create the query string and variables required for the request.
+        # Search by teacher name
         query = """
-            query courseInfo($courseId: ID!) {
-                course(id: $courseId) {
-                    id
-                    _id
-                    name
-                    createdAt
-                    updatedAt
+            fragment CourseInfo on Courseware {
+                id
+            }
+
+            query($teacherName: String) {
+                teacherCollection(preview: true, where: {
+                    displayName_contains: $teacherName
+                }) {
+                    items {
+                        linkedFrom {
+                            entryCollection(preview: true) {
+                                items {
+                                    ...CourseInfo
+                                }
+                            }
+                        }
+                    }
                 }
             }
         """
-        variables = {'courseId': 2066466}
+        teacher_name = request.form['query']
+        variables = {"teacherName": teacher_name}
         # Synchronous request
         result = client.execute(query=query, variables=variables)
-        print(result)
+        courseware_ids = []
+        items = result['data']['teacherCollection']['items']
+        for item in items:
+            other_items = item['linkedFrom']['entryCollection']['items']
+            for other_item in other_items:
+                courseware_ids.append(str(other_item['id']))
+        # Search by course id
+        query = """
+            fragment DepartmentInfo on Department {
+                name
+            }
 
-    return jsonify(result)
+            fragment TeacherInfo on Teacher {
+	            displayName
+            }
+
+            query($coursewareIds: [String]) {
+                coursewareCollection(preview: true, where: {
+                    id_in: $coursewareIds
+                }) {
+                    items {
+    	                name
+                        url
+    	                department {
+                            ...DepartmentInfo
+                        }
+                        teachersCollection {
+                            items {
+                                ...TeacherInfo
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        variables = {"coursewareIds": courseware_ids}
+        result = client.execute(query=query, variables=variables)
+        coursewares = []
+        items = result['data']['coursewareCollection']['items']
+        for item in items:
+            teachers = []
+            for teacher in item['teachersCollection']['items']:
+                teachers.append(teacher)
+            courseware = {}
+            courseware['name'] = item['name']
+            courseware['url'] = item['url']
+            courseware['department'] = item['department']
+            courseware['teachers'] = teachers
+            coursewares.append(courseware)
+
+    return jsonify(coursewares)
 
 
 if __name__ == '__main__':

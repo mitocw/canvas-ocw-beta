@@ -1,0 +1,48 @@
+@use '../styles/functions/color';
+@use '../styles/colors';
+@use '@material/card';
+@include card.core-styles;
+
+.courseware-card {
+  position: relative;
+  top: 0;
+  transition: all .1s ease-in;
+  margin: 0 auto 1rem auto;
+  padding: 0.5rem;
+  @include card.fill-color(color.color(card-background));
+  @include card.outline(color.color(card-border), 1px);
+
+  &:hover {
+    top: -2px;
+    // Corresponds to an MDC elevation of 5
+    box-shadow: 0px 3px 5px -1px colors.$black-20, 0px 5px 8px 0px colors.$black-14, 0px 1px 14px 0px colors.$black-12;
+  }
+  // Corresponds to an MDC elevation of 4
+  box-shadow: 0px 2px 4px -1px colors.$black-20, 0px 4px 5px 0px colors.$black-14, 0px 1px 10px 0px colors.$black-12;
+
+  &__link {
+    color: color.color(card-title);
+    font-size: 18px;
+    font-weight: 700;
+    font-style: normal;
+    text-decoration: none;
+
+    &:hover {
+      color: color.color(card-title-hover);
+    }
+  }
+
+  &__instructors-title {
+    color: color.color(card-instructors);
+    font-size: 16px;
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  &__instructors {
+    color: color.color(card-instructors);
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+  }
+}
