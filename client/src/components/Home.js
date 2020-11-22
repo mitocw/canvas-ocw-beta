@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@rmwc/button';
+import { Select } from '@rmwc/select';
 import { TextField } from '@rmwc/textfield';
 import searchService from '../core/services/SearchService';
 import shortid from '../utils/shortid';
@@ -8,14 +9,18 @@ import Context from './Context';
 import './Home.scss';
 
 export default function Home() {
+  const timeout = 200;
   const [query, setQuery ] = useState('');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [coursewares, setCoursewares] = useState({});
+  const [coursewares, setCoursewares] = useState([]);
+  const [filteredCoursewares, setFilteredCoursewares] = useState([]);
   const [resultsMessage, setResultsMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showContext, setShowContext ] = useState(true);
+  const [department, setDepartment] = useState('All');
+  const [departmentOptions, setDepartmentOptions] = useState([{ label: 'All', value: 'All' }]);
   
   useEffect(() => {
     const loadCoursewares = async () => {
@@ -29,10 +34,25 @@ export default function Home() {
           const coursewares = await searchService.search(search);
           setShowContext(false);
           setCoursewares(coursewares);
-          setResultsMessage(Object.keys(coursewares).length > 0 ?
+          setFilteredCoursewares(coursewares);
+          setResultsMessage(coursewares.length > 0 ?
             'Results from MIT\'s Canvas.' :
             `Sorry, we didn’t find any results for "${search}" term.`
           );
+          let departments = [];
+          coursewares.forEach((courseware) => {
+            if (courseware.department && courseware.department.name) {
+              const name = courseware.department.name;
+              departments.push({
+                label: name,
+                value: name
+              })
+            }
+          });
+          const uniqueDepartments = departments.filter(
+            (elem, index) => departments.findIndex((obj) => obj.value === elem.value) === index
+          );
+          setDepartmentOptions([{ label: 'All', value: 'All' }, ...uniqueDepartments]);
         }
       } catch(error) {
         setIsError(true);
@@ -42,6 +62,22 @@ export default function Home() {
     };
     loadCoursewares();
   }, [search]);
+
+  useEffect(
+    () => {
+      let newFilteredCoursewares;
+      if (department === 'All') {
+        newFilteredCoursewares = coursewares;
+      }
+      else if (coursewares && coursewares.length) {
+        newFilteredCoursewares = coursewares.filter((courseware) => {
+          return courseware.department && courseware.department.name && courseware.department.name === department;
+        });
+      }
+      setTimeout(() => setFilteredCoursewares(newFilteredCoursewares), timeout);
+    },
+    [department, coursewares]
+  );
 
   const inputChange = (event) => setQuery(event.currentTarget.value);
   
@@ -53,6 +89,10 @@ export default function Home() {
   }
   
   const buttonClick = () => setSearch(query);
+
+  const departmentChange = (event) => {
+    setDepartment(event.currentTarget.value);
+  }
 
   let resultsEl;
 
@@ -69,14 +109,14 @@ export default function Home() {
       </div>
     );
   } else {
-    const coursewaresEl = Object.keys(coursewares).map((key) => (
+    const coursewaresEl = filteredCoursewares.map((courseware) => (
       <CoursewareCard
         key={shortid()}
-        title={coursewares[key].name}
-        url={coursewares[key].url}
-        instructors={coursewares[key].teachers}
+        title={courseware.name}
+        url={courseware.url}
+        instructors={courseware.teachers}
       />
-    ));
+    ))
     resultsEl = (
       <>
         <div className="home__results-message">
@@ -93,14 +133,23 @@ export default function Home() {
   return (
     <main className="home">
       <TextField
-        className="home__search"
+        className="home__search-text-field"
         placeholder="Find courseware by instructor from across MIT's Canvas"
         outlined
         value={query}
         onChange={inputChange}
         onKeyUp={inputKeyUp}
       />
-      <Button label="Search" unelevated onClick={buttonClick}/>
+      <Button className="home__search-button" label="Search" unelevated onClick={buttonClick}/>
+      <Select
+        className="home__department-filter"
+        enhanced
+        outlined
+        label="Department"
+        value={department}
+        options={departmentOptions}
+        onChange={departmentChange}
+      />
       {showContext && <Context/>}
       {resultsEl}
     </main>

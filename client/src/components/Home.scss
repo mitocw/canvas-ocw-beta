@@ -1,5 +1,7 @@
 @use '../styles/functions/color';
 @use '../styles/colors';
+@use '@material/button';
+@use '@material/select';
 @use '@material/textfield';
 
 .home {
@@ -7,17 +9,37 @@
   background: color.color(main-background);
   min-height: 35rem;
   
-  .home__search {
-    @include textfield.fill-color(colors.$white);
-    @include textfield.ink-color(colors.$black);
-    @include textfield.placeholder-color(colors.$boulder);
-    @include textfield.outline-color(colors.$white);
-    @include textfield.focused-outline-color(colors.$white);
-    @include textfield.hover-outline-color(colors.$white);
-    @include textfield.height(36px); // 2.25rem
-    @include textfield.outlined-height(36px);
-    min-width: 38rem;
-    margin-right: 2.1rem;
+  &__search-text-field {
+    &#{&} {
+      @include textfield.fill-color(colors.$white);
+      @include textfield.ink-color(colors.$mine-shaft);
+      @include textfield.placeholder-color(colors.$boulder);
+      @include textfield.outline-color(colors.$white);
+      @include textfield.focused-outline-color(colors.$white);
+      @include textfield.hover-outline-color(colors.$white);
+      @include textfield.height(36px); // 2.25rem
+      @include textfield.outlined-height(36px);
+      min-width: 38rem;
+      margin-right: 2.1rem;
+    }
+  }
+
+  &__search-button {
+    &#{&} {
+      @include button.filled-accessible(colors.$alizarin-crimson);
+    }
+  }
+
+  &__department-filter {
+    &#{&} {
+      @include select.ink-color(colors.$mine-shaft);
+      @include select.container-fill-color(colors.$white);
+      @include select.outline-color(colors.$boulder);
+      @include select.label-color(colors.$mine-shaft);
+      @include select.focused-label-color(colors.$mine-shaft);
+      @include select.focused-outline-color(colors.$mine-shaft);
+      margin-top: 2rem;
+    }
   }
 
   &__loading-message, &__results-message, &__error-message {
@@ -25,3 +47,18 @@
     margin : 0.5rem 0;
   }
 }
+
+// --mdc-theme-primary: colors.$mine-shaft;
+// --mdc-theme--on-primary: green;
+// --mdc-theme-secondary: pink;
+// --mdc-theme--on-secondary: gray;
+// --mdc-theme-surface: yellow;
+// --mdc-theme--on-surface: green;
+// @include theme.prop('primary', blue);
+// @include theme.prop('secondary', blue);
+// @include theme.prop('background', blue);
+// @include theme.prop('surface', blue);
+// @include theme.prop('on-primary', blue);
+// @include theme.prop('on-secondary', blue);
+// @include theme.prop('background', blue);
+// @include theme.prop('on-surface', blue);

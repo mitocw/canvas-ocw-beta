@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from '@rmwc/card';
+import shortid from '../utils/shortid';
 import './CoursewareCard.scss';
 
 export default function CoursewareCard(props) {
@@ -7,9 +8,9 @@ export default function CoursewareCard(props) {
   const lastIndex = instructors.length - 1;
   const instructorsEl = instructors.map((instructor, index) => {
     if (index !== lastIndex) {
-      return <span>{instructor.displayName},&nbsp;</span>;
+      return <span key={shortid()}>{instructor.displayName},&nbsp;</span>;
     } else {
-      return <span>{instructor.displayName}</span>;
+      return <span key={shortid()}>{instructor.displayName}</span>;
     }
   });
   

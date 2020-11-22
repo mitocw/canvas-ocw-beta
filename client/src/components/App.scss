@@ -1,19 +1,23 @@
 @use '../styles/colors';
 @use "@material/theme" with (
-  $primary: colors.$alizarin-crimson,
-  $on-primary: colors.$white,
-  $secondary: brown,
-  $on-secondary: brown,
-  $surface: brown,
-  $on-surface: green,
+  $primary: colors.$boulder,
 );
 @use "@material/button/mdc-button";
-@use "@material/button";
 @use '@material/textfield/mdc-text-field';
-@use '@material/textfield';
+@use "@material/list/mdc-list";
+@use "@material/menu-surface/mdc-menu-surface";
+@use "@material/menu/mdc-menu";
+@use '@material/select/mdc-select';
 
 .app {
   min-width: 500px;
   max-width: 768px;
   margin: 0 auto;
 }
+
+// $primary: colors.$alizarin-crimson,
+// $on-primary: colors.$white,
+// $secondary: colors.$white,
+// $on-secondary: colors.$boulder,
+// $surface: colors.$white,
+// $on-surface: colors.$boulder
