@@ -41,15 +41,41 @@ def search():
             endpoint=endpoint.substitute(space_id=current_app.config['CONTENTFUL_SPACE_ID']),
             headers=headers
         )
-        # Search by teacher name
+
+        search_term = request.form['query']
+        variables = {"searchTerm": search_term}
+
+        ##### Search on name, syllabusBody fields and gather courseware ids #####
+        query = """
+            query($searchTerm: String) {
+                coursewareCollection(preview: true, where: {
+                    OR: [
+                        { name_contains: $searchTerm },
+                        { syllabusBody_contains: $searchTerm }
+                    ]
+                }) {
+                    items {
+                        id
+                    }
+                }
+            }
+        """
+        # Synchronous request
+        result = client.execute(query=query, variables=variables)
+        name_syllabus_courseware_ids = []
+        items = result['data']['coursewareCollection']['items']
+        for item in items:
+            name_syllabus_courseware_ids.append(str(item['id']))
+        
+        ##### Search on teacher field and gather courseware ids #####
         query = """
             fragment CourseInfo on Courseware {
                 id
             }
 
-            query($teacherName: String) {
+            query($searchTerm: String) {
                 teacherCollection(preview: true, where: {
-                    displayName_contains: $teacherName
+                    displayName_contains: $searchTerm
                 }) {
                     items {
                         linkedFrom {
@@ -63,16 +89,18 @@ def search():
                 }
             }
         """
-        teacher_name = request.form['query']
-        variables = {"teacherName": teacher_name}
         # Synchronous request
         result = client.execute(query=query, variables=variables)
-        courseware_ids = []
+        teacher_courseware_ids = []
         items = result['data']['teacherCollection']['items']
         for item in items:
             other_items = item['linkedFrom']['entryCollection']['items']
             for other_item in other_items:
-                courseware_ids.append(str(other_item['id']))
+                teacher_courseware_ids.append(str(other_item['id']))
+        
+        ##### Concatenate courseware lists and remove dupes #####
+        courseware_ids = list(set(name_syllabus_courseware_ids + teacher_courseware_ids))
+
         # Search by course id
         query = """
             fragment DepartmentInfo on Department {
@@ -80,7 +108,7 @@ def search():
             }
 
             fragment TeacherInfo on Teacher {
-	            displayName
+                displayName
             }
 
             query($coursewareIds: [String]) {
@@ -88,9 +116,9 @@ def search():
                     id_in: $coursewareIds
                 }) {
                     items {
-    	                name
+                        name
                         url
-    	                department {
+                        department {
                             ...DepartmentInfo
                         }
                         teachersCollection {
