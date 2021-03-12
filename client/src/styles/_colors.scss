@@ -21,8 +21,9 @@ $emperor: #555555;
 // Sass nested palette maps, use quotes otherwise messes up with CSS values
 $default-palette: (
   'header': (
-    'background':   $alizarin-crimson,
-    'foreground':   $white
+    'background':   $black,
+    'foreground-1': $white,
+    'foreground-2': $burnt-sienna
   ),
   'main': (
     'background':   $sea-shell
