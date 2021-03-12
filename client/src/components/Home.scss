@@ -1,6 +1,7 @@
 @use '../styles/functions/color';
 @use '../styles/colors';
 @use '@material/button';
+@use '@material/drawer';
 @use '@material/select';
 @use '@material/textfield';
 
@@ -45,6 +46,21 @@
   &__loading-message, &__results-message, &__error-message {
     font-size: 14px;
     margin : 0.5rem 0;
+  }
+
+  &__course-drawer-iframe {
+    width: 100%;
+    height: 100%;
+  }
+
+  .mdc-drawer--modal {
+    top: 0;
+    width: 750px;
+    height: 100%;
+  }
+
+  .mdc-drawer__content {
+    overflow: hidden;
   }
 }
 

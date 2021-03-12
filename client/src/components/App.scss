@@ -3,6 +3,7 @@
   $primary: colors.$boulder,
 );
 @use "@material/button/mdc-button";
+@use '@material/drawer/mdc-drawer';
 @use '@material/textfield/mdc-text-field';
 @use "@material/list/mdc-list";
 @use "@material/menu-surface/mdc-menu-surface";

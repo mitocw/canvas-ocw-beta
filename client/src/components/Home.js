@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@rmwc/button';
+import { Drawer, DrawerContent } from '@rmwc/drawer';
 import { Select } from '@rmwc/select';
 import { TextField } from '@rmwc/textfield';
 import searchService from '../core/services/SearchService';
@@ -21,6 +22,8 @@ export default function Home() {
   const [showContext, setShowContext ] = useState(true);
   const [department, setDepartment] = useState('All');
   const [departmentOptions, setDepartmentOptions] = useState([{ label: 'All', value: 'All' }]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [courseUrl, setCourseUrl] = useState('');
   
   useEffect(() => {
     const loadCoursewares = async () => {
@@ -94,6 +97,16 @@ export default function Home() {
     setDepartment(event.currentTarget.value);
   }
 
+  const handleViewCourse = (url) => {
+    setCourseUrl(url);
+    setDrawerOpen(true);
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setCourseUrl('');
+  }
+
   let resultsEl;
 
   if (isLoading) {
@@ -112,9 +125,10 @@ export default function Home() {
     const coursewaresEl = filteredCoursewares.map((courseware) => (
       <CoursewareCard
         key={shortid()}
+        instructors={courseware.teachers}
         title={courseware.name}
         url={courseware.url}
-        instructors={courseware.teachers}
+        onViewCourse={handleViewCourse}
       />
     ))
     resultsEl = (
@@ -150,6 +164,16 @@ export default function Home() {
         options={departmentOptions}
         onChange={departmentChange}
       />
+      <Drawer
+        className="home__course-drawer"
+        modal
+        open={drawerOpen}
+        onClose={handleDrawerClose}
+      >
+        <DrawerContent>
+          <iframe className="home__course-drawer-iframe" src={courseUrl} title="Canvas course"></iframe>
+        </DrawerContent>
+    </Drawer>
       {showContext && <Context/>}
       {resultsEl}
     </main>

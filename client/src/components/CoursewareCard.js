@@ -4,7 +4,7 @@ import shortid from '../utils/shortid';
 import './CoursewareCard.scss';
 
 export default function CoursewareCard(props) {
-  const { title, url, instructors } = props;
+  const { title, url, instructors, onViewCourse } = props;
   const lastIndex = instructors.length - 1;
   const instructorsEl = instructors.map((instructor, index) => {
     if (index !== lastIndex) {
@@ -13,10 +13,15 @@ export default function CoursewareCard(props) {
       return <span key={shortid()}>{instructor.displayName}</span>;
     }
   });
+  const handleClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onViewCourse(url);
+  }
   
   return (
       <Card className="courseware-card">
-        <a href={url} className="courseware-card__link">{title}</a>
+        <a className="courseware-card__link"  href={url} onClick={handleClick}>{title}</a>
         <p className="courseware-card__instructors">
           <span className="courseware-card__instructors-title">Instructors: </span> {instructorsEl}
         </p>
