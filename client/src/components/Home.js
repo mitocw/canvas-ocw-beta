@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { MdOpenInNew } from 'react-icons/md';
 import { Button } from '@rmwc/button';
 import { Drawer, DrawerContent } from '@rmwc/drawer';
+import { Radio } from '@rmwc/radio';
 import { Select } from '@rmwc/select';
 import { TextField } from '@rmwc/textfield';
 import searchService from '../core/services/SearchService';
@@ -107,6 +109,11 @@ export default function Home() {
     setCourseUrl('');
   }
 
+  const handleBrowseCourse = () => {
+    console.log(courseUrl)
+    window.open(courseUrl, '_blank');
+  }
+
   let resultsEl;
 
   if (isLoading) {
@@ -143,7 +150,12 @@ export default function Home() {
       </>
     );
   }
-  
+  const [candidate, setCandidate] = useState('yes');
+  const [copyright, setCopyright] = useState('yes');
+
+  const handleCandidateChange = (event) => setCandidate(String(event.currentTarget.value));
+  const handleCopyrightChange = (event) => setCopyright(String(event.currentTarget.value));
+
   return (
     <main className="home">
       <TextField
@@ -165,13 +177,89 @@ export default function Home() {
         onChange={departmentChange}
       />
       <Drawer
-        className="home__course-drawer"
+        dir="rtl"
         modal
         open={drawerOpen}
         onClose={handleDrawerClose}
       >
-        <DrawerContent>
-          <iframe className="home__course-drawer-iframe" src={courseUrl} title="Canvas course"></iframe>
+        <DrawerContent className="home__course-drawer-content" dir="ltr">
+          <div className="home__course-drawer-subcontent">
+            <div className="home__course-drawer-subcontent-header">
+              <h4 className="home__course-drawer-subtitle">Publication Candidate?</h4>
+              <Button
+                className="home__course-drawer-button"
+                label="Browse Course"
+                trailingIcon={<MdOpenInNew className="home__course-drawer-icon" />}
+                onClick={handleBrowseCourse}
+              />
+            </div>
+            <div className="home__course-drawer-radio-buttons">
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="yes"
+                checked={candidate === 'yes'}
+                onChange={handleCandidateChange}
+              >
+                Yes
+              </Radio>
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="no"
+                checked={candidate === 'no'}
+                onChange={handleCandidateChange}
+              >
+                No
+              </Radio>
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="unsure"
+                checked={candidate === 'unsure'}
+                onChange={handleCandidateChange}
+              >
+                Unsure
+              </Radio>
+            </div>
+          </div>
+          <div className="home__course-drawer-subcontent">
+            <h4 className="home__course-drawer-subtitle">Minimal Copyright</h4>
+            <div  className="home__course-drawer-radio-buttons">
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="yes"
+                checked={copyright === 'yes'}
+                onChange={handleCopyrightChange}
+              >
+                Yes
+              </Radio>
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="no"
+                checked={copyright === 'no'}
+                onChange={handleCopyrightChange}
+              >
+                No
+              </Radio>
+              <Radio
+                className="home__course-drawer-radio-button"
+                value="unsure"
+                checked={copyright === 'unsure'}
+                onChange={handleCopyrightChange}
+              >
+                Unsure
+              </Radio>
+            </div>
+          </div>
+          <div className="home__course-drawer-subcontent">
+            <h4 className="home__course-drawer-subtitle">Teamwide Comment</h4>
+            <TextField
+              className="home__course-drawer-text-area"
+              fullwidth
+              outlined
+              placeholder="Comment on the readiness of this course for publication on OpenCourseWare."
+              rows={10}
+              textarea
+            />
+          </div>
         </DrawerContent>
     </Drawer>
       {showContext && <Context/>}

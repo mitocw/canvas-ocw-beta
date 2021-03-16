@@ -17,6 +17,7 @@ $alizarin-crimson: #e13022;
 $burnt-sienna: #eb5757;
 $mine-shaft: #252525;
 $emperor: #555555;
+$mercury: #e5e5e5;
 
 // Sass nested palette maps, use quotes otherwise messes up with CSS values
 $default-palette: (
@@ -47,5 +48,8 @@ $default-palette: (
     'background':   $black,
     'foreground-1': $white,
     'foreground-2': $burnt-sienna
+  ),
+  'drawer': (
+    'background':   $mercury
   ),
 );

@@ -2,6 +2,7 @@
 @use '../styles/colors';
 @use '@material/button';
 @use '@material/drawer';
+@use '@material/radio';
 @use '@material/select';
 @use '@material/textfield';
 
@@ -48,9 +49,54 @@
     margin : 0.5rem 0;
   }
 
-  &__course-drawer-iframe {
-    width: 100%;
-    height: 100%;
+  &__course-drawer-content {
+    padding: 2rem;
+    background: color.color(drawer-background);
+  }
+
+  &__course-drawer-subcontent {
+    margin-bottom: 2rem;
+  }
+
+  &__course-drawer-subcontent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__course-drawer-subtitle {
+    margin: 0;
+    font-size: 18px;
+    font-style: italic;
+  }
+
+  &__course-drawer-button {
+    &#{&} {
+      @include button.filled-accessible(colors.$alizarin-crimson);
+    }
+  }
+
+  &__course-drawer-icon {
+    margin-left: 0.5rem;
+  }
+
+  &__course-drawer-radio-buttons {
+    display: flex;
+  }
+  
+  &__course-drawer-radio-button {
+    margin-right: 1rem;
+    font-size: 16px;
+  }
+
+  &__course-drawer-text-area {
+    &#{&} {
+      margin-top: 1rem;
+      @include textfield.fill-color(colors.$white);
+      @include textfield.outline-color(colors.$white);
+      @include textfield.focused-outline-color(colors.$white);
+      @include textfield.hover-outline-color(colors.$white);
+    }
   }
 
   .mdc-drawer--modal {
@@ -63,18 +109,3 @@
     overflow: hidden;
   }
 }
-
-// --mdc-theme-primary: colors.$mine-shaft;
-// --mdc-theme--on-primary: green;
-// --mdc-theme-secondary: pink;
-// --mdc-theme--on-secondary: gray;
-// --mdc-theme-surface: yellow;
-// --mdc-theme--on-surface: green;
-// @include theme.prop('primary', blue);
-// @include theme.prop('secondary', blue);
-// @include theme.prop('background', blue);
-// @include theme.prop('surface', blue);
-// @include theme.prop('on-primary', blue);
-// @include theme.prop('on-secondary', blue);
-// @include theme.prop('background', blue);
-// @include theme.prop('on-surface', blue);

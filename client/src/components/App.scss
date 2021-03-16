@@ -1,24 +1,21 @@
 @use '../styles/colors';
 @use "@material/theme" with (
   $primary: colors.$boulder,
+  $secondary: colors.$boulder,
 );
-@use "@material/button/mdc-button";
+@use '@material/button/mdc-button';
 @use '@material/drawer/mdc-drawer';
-@use '@material/textfield/mdc-text-field';
-@use "@material/list/mdc-list";
-@use "@material/menu-surface/mdc-menu-surface";
-@use "@material/menu/mdc-menu";
+@use '@material/form-field/mdc-form-field';
+@use '@rmwc/icon/icon';
+@use '@material/list/mdc-list';
+@use '@material/menu/mdc-menu';
+@use '@material/menu-surface/mdc-menu-surface';
+@use '@material/radio/mdc-radio';
 @use '@material/select/mdc-select';
+@use '@material/textfield/mdc-text-field';
 
 .app {
   min-width: 500px;
   max-width: 768px;
   margin: 0 auto;
 }
-
-// $primary: colors.$alizarin-crimson,
-// $on-primary: colors.$white,
-// $secondary: colors.$white,
-// $on-secondary: colors.$boulder,
-// $surface: colors.$white,
-// $on-surface: colors.$boulder
