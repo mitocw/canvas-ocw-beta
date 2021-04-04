@@ -12,48 +12,50 @@ from whoosh import index, qparser
 app = Flask(__name__, static_folder='./client/build', static_url_path='/')
 app.config.from_object('config')
 
+# Load raw json file
+with open(r'coursewares.json') as json_file:
+    all_coursewares = json.load(json_file)
+
 if not os.path.exists("indexdir"):
     schema = Schema(
         id=ID(stored=True),
         name=TEXT(stored=True),
         course_code=TEXT(stored=True),
-        dept=TEXT(stored=True),
-        created_at=DATETIME(stored=True),
-        updated_at=DATETIME(stored=True),
-        n_modules=NUMERIC(stored=True),
-        n_assignments=NUMERIC(stored=True),
-        n_pages=NUMERIC(stored=True),
-        n_files=NUMERIC(stored=True),
-        n_quizzes=NUMERIC(stored=True),
-        n_visible_tabs=NUMERIC(stored=True),
-        n_students=NUMERIC(stored=True)
+        dept=TEXT(stored=True)
+        # created_at=DATETIME(),
+        # updated_at=DATETIME(),
+        # n_modules=NUMERIC(),
+        # n_assignments=NUMERIC(),
+        # n_pages=NUMERIC(),
+        # n_files=NUMERIC(),
+        # n_quizzes=NUMERIC(),
+        # n_visible_tabs=NUMERIC(),
+        # n_students=NUMERIC()
     )
     os.mkdir("indexdir")
     ix = index.create_in('indexdir', schema)
     writer = ix.writer()
-    with open(r'coursewares.json') as json_file:
-        data = json.load(json_file)
-    for id in data:
-        courseware = data[id]
+    for id in all_coursewares:
+        courseware = all_coursewares[id]
         writer.add_document(
             id=id,
             name=courseware['name'],
             course_code=courseware['course_code'],
             dept=courseware['dept'],
-            created_at=datetime.fromisoformat(courseware['created_at'][:-1]),
-            updated_at=datetime.fromisoformat(courseware['updated_at'][:-1]),
-            n_modules=courseware['n_modules'],
-            n_assignments=courseware['n_assignments'],
-            n_pages=courseware['n_pages'],
-            n_files=courseware['n_files'],
-            n_quizzes=courseware['n_quizzes'],
-            n_visible_tabs=courseware['n_visible_tabs'],
-            n_students=courseware['n_students']
+            # created_at=datetime.fromisoformat(courseware['created_at'][:-1]),
+            # updated_at=datetime.fromisoformat(courseware['updated_at'][:-1]),
+            # n_modules=courseware['n_modules'],
+            # n_assignments=courseware['n_assignments'],
+            # n_pages=courseware['n_pages'],
+            # n_files=courseware['n_files'],
+            # n_quizzes=courseware['n_quizzes'],
+            # n_visible_tabs=courseware['n_visible_tabs'],
+            # n_students=courseware['n_students']
         )
     writer.commit()
 
 ix = index.open_dir('indexdir')
-qp = qparser.MultifieldParser(['name', 'dept'], ix.schema)
+qp = qparser.MultifieldParser(['name', 'course_code'], ix.schema)
 
 # Example of one of the courseware of our json file:
 # "3196": {
@@ -96,7 +98,10 @@ def search():
         with ix.searcher() as searcher:
             results = searcher.search(q)
             for r in results:
-                coursewares.append(r.fields())
+                id = r.fields()['id']
+                courseware = all_coursewares[id]
+                courseware['id'] = id
+                coursewares.append(courseware)
 
     return jsonify(coursewares)
 

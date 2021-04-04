@@ -46,11 +46,11 @@ export default function Home() {
           );
           let departments = [];
           coursewares.forEach((courseware) => {
-            if (courseware.department && courseware.department.name) {
-              const name = courseware.department.name;
+            if (courseware.department) {
+              const { department } = courseware;
               departments.push({
-                label: name,
-                value: name
+                label: department,
+                value: department
               })
             }
           });
@@ -76,7 +76,7 @@ export default function Home() {
       }
       else if (coursewares && coursewares.length) {
         newFilteredCoursewares = coursewares.filter((courseware) => {
-          return courseware.department && courseware.department.name && courseware.department.name === department;
+          return courseware.department && courseware.department === department;
         });
       }
       setTimeout(() => setFilteredCoursewares(newFilteredCoursewares), timeout);
@@ -132,9 +132,12 @@ export default function Home() {
     const coursewaresEl = filteredCoursewares.map((courseware) => (
       <CoursewareCard
         key={shortid()}
-        instructors={courseware.teachers}
         title={courseware.name}
         url={courseware.url}
+        instructors={courseware.teachers}
+        modules={courseware.modules}
+        assignments={courseware.assignments}
+        quizzes={courseware.quizzes}
         onViewCourse={handleViewCourse}
       />
     ))
@@ -160,7 +163,7 @@ export default function Home() {
     <main className="home">
       <TextField
         className="home__search-text-field"
-        placeholder="Find courseware by instructor from across MIT's Canvas"
+        placeholder="Search course names, numbers"
         outlined
         value={query}
         onChange={inputChange}
