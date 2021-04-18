@@ -99,7 +99,11 @@ export default function Home() {
     setDepartment(event.currentTarget.value);
   }
 
-  const handleViewCourse = (url) => {
+  const handleBrowseCourseFromCard = (url) => {
+    window.open(url, '_blank');
+  }
+
+  const handleViewCourseFromCard = (url) => {
     setCourseUrl(url);
     setDrawerOpen(true);
   }
@@ -110,7 +114,6 @@ export default function Home() {
   }
 
   const handleBrowseCourse = () => {
-    console.log(courseUrl)
     window.open(courseUrl, '_blank');
   }
 
@@ -138,7 +141,9 @@ export default function Home() {
         modules={courseware.modules}
         assignments={courseware.assignments}
         quizzes={courseware.quizzes}
-        onViewCourse={handleViewCourse}
+        files={courseware.files}
+        onBrowseCourse={handleBrowseCourseFromCard}
+        onViewCourse={handleViewCourseFromCard}
       />
     ))
     resultsEl = (

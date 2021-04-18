@@ -11,6 +11,7 @@ export class Courseware {
     modules; // number
     assignments; // number
     quizzes; // number
+    files; //number
 
     constructor(courseware) {
         this.name = courseware['name'];
@@ -23,5 +24,6 @@ export class Courseware {
         this.modules = courseware['n_modules'];
         this.assignments = courseware['n_assignments'];
         this.quizzes = courseware['n_quizzes'];
+        this.files = courseware['n_files'];
     }
 }
