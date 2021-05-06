@@ -14,5 +14,8 @@ WTF_CSRF_ENABLED = True
 # secret key for authentication
 SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "you-will-never-guess")
 
+# google spreadsheets credentials
+GSCREDS = os.environ.get("GSHEETS_CRED_LOCATION", "Do you have credentials?")
+
 SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True

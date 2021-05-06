@@ -2,12 +2,15 @@ import os
 import requests
 import json
 from flask import current_app, Flask, jsonify, make_response, redirect, render_template, request
+import gspread
 from jinja2 import Template
 from string import Template as Temp
+from oauth2client.service_account import ServiceAccountCredentials
 from python_graphql_client import GraphqlClient
 from datetime import datetime
 from whoosh.fields import Schema, ID, TEXT, NUMERIC, DATETIME
 from whoosh import index, qparser
+
 
 app = Flask(__name__, static_folder='./client/build', static_url_path='/')
 app.config.from_object('config')
@@ -92,6 +95,14 @@ def index():
 @app.route('/search', methods=['POST'])
 def search():
     if request.method == 'POST':
+        
+        scope = ['https://www.googleapis.com/auth/drive']        
+        creds = ServiceAccountCredentials.from_json_keyfile_name(current_app.config['GSCREDS'], scope)
+        gsclient = gspread.authorize(creds)
+        spreadsheet = gsclient.open('publication_candidate_notes')
+        spreadsheet.worksheet('Sheet1').append_row(['12345', 'append', 'yes', 'yes', 'looks like a candidate'])
+        spreadsheet.worksheet('Sheet1').insert_row(['12345', 'insert', 'yes', 'yes', 'looks like a candidate'], index=2)
+
         search_term = request.form['query']
         q = qp.parse(search_term)
         coursewares = []
@@ -227,4 +238,4 @@ def search_contenful():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True, port=5000)
+    app.run(debug=True, threaded=True, port=5000)    

@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+coursewares.json
+indexdir/
+
 # C extensions
 *.so
 
