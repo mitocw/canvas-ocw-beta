@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { MdOpenInNew } from 'react-icons/md';
+import { MdFileUpload, MdOpenInNew } from 'react-icons/md';
 import { Button } from '@rmwc/button';
 import { Drawer, DrawerContent } from '@rmwc/drawer';
 import { Radio } from '@rmwc/radio';
 import { Select } from '@rmwc/select';
 import { TextField } from '@rmwc/textfield';
+import { SpreadsheetRow } from '../core/models/SpreadsheetRow';
 import searchService from '../core/services/SearchService';
+import spreadsheetService from '../core/services/SpreadsheetService';
+// import useDebounced from '../hooks/useDebounced';
 import shortid from '../utils/shortid';
 import CoursewareCard from './CoursewareCard';
 import Context from './Context';
@@ -25,7 +28,12 @@ export default function Home() {
   const [department, setDepartment] = useState('All');
   const [departmentOptions, setDepartmentOptions] = useState([{ label: 'All', value: 'All' }]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [courseUrl, setCourseUrl] = useState('');
+  const [coursewareUrl, setCoursewareUrl] = useState('');
+  const [coursewareId, setCoursewareId] = useState('');
+  const [candidate, setCandidate] = useState('yes');
+  const [copyright, setCopyright] = useState('yes');
+  const [comment, setComment] = useState('');
+  const [spreadsheetRows, setSpreadsheetRows] = useState([]);
   
   useEffect(() => {
     const loadCoursewares = async () => {
@@ -84,6 +92,21 @@ export default function Home() {
     [department, coursewares]
   );
 
+  useEffect(() => {
+    const loadSpreadsheetRows = async () => {
+      try {
+        // Do not send a request for an empty string
+        if (coursewareId) {
+          const rows = await spreadsheetService.load(coursewareId);
+          setSpreadsheetRows(rows);
+        }
+      } catch(error) {
+        console.log('An error occured', error);
+      }
+    };
+    loadSpreadsheetRows();
+  }, [coursewareId]);
+
   const inputChange = (event) => setQuery(event.currentTarget.value);
   
   const inputKeyUp = (event) => {
@@ -103,18 +126,47 @@ export default function Home() {
     window.open(url, '_blank');
   }
 
-  const handleViewCourseFromCard = (url) => {
-    setCourseUrl(url);
+  const handleViewCourseFromCard = (id, url) => {
+    setCoursewareUrl(url);
+    setCoursewareId(id);
     setDrawerOpen(true);
   }
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
-    setCourseUrl('');
+    // Reset
+    setCoursewareId('');
+    setCoursewareUrl('');
+    setCandidate('yes');
+    setCopyright('yes');
+    setComment('');
   }
 
   const handleBrowseCourse = () => {
-    window.open(courseUrl, '_blank');
+    window.open(coursewareUrl, '_blank');
+  }
+
+  // const setCommentDebounced = useDebounced(value => setComment(value));
+  const handleCandidateChange = (event) => setCandidate(String(event.currentTarget.value));
+  const handleCopyrightChange = (event) => setCopyright(String(event.currentTarget.value));
+  const handleCommentChange = (event) => {
+    // setCommentDebounced(String(event.currentTarget.value));
+    setComment(String(event.currentTarget.value));
+  }
+
+  const handleSubmit = () => {
+    const createSpreadsheetRow = async () => {
+      try {
+          const response = await spreadsheetService.create(coursewareId, candidate, copyright, comment);
+          const newRow = new SpreadsheetRow(response);
+          const rows = JSON.parse(JSON.stringify(spreadsheetRows)); // Clone
+          rows.unshift(newRow);
+          setSpreadsheetRows(rows);
+      } catch(error) {
+        console.log('An error occured', error);
+      }
+    };
+    createSpreadsheetRow();
   }
 
   let resultsEl;
@@ -135,6 +187,7 @@ export default function Home() {
     const coursewaresEl = filteredCoursewares.map((courseware) => (
       <CoursewareCard
         key={shortid()}
+        id={courseware.id}
         title={courseware.name}
         url={courseware.url}
         instructors={courseware.teachers}
@@ -158,11 +211,15 @@ export default function Home() {
       </>
     );
   }
-  const [candidate, setCandidate] = useState('yes');
-  const [copyright, setCopyright] = useState('yes');
 
-  const handleCandidateChange = (event) => setCandidate(String(event.currentTarget.value));
-  const handleCopyrightChange = (event) => setCopyright(String(event.currentTarget.value));
+  const spreadsheetRowsEl = spreadsheetRows.map((row) => (
+    <div className="home__course-drawer-spreadsheet-row" key={shortid()}>
+      <div>{row.date}</div>
+      <div>Publication candidate: {row.publicationCandidate}</div>
+      <div>Minimal copyright: {row.minimalCopyright}</div>
+      <div>Comment: {row.comment}</div>
+    </div>
+  ))
 
   return (
     <main className="home">
@@ -195,7 +252,7 @@ export default function Home() {
             <div className="home__course-drawer-subcontent-header">
               <h4 className="home__course-drawer-subtitle">Publication Candidate?</h4>
               <Button
-                className="home__course-drawer-button"
+                className="home__course-drawer-browse-button"
                 label="Browse Course"
                 trailingIcon={<MdOpenInNew className="home__course-drawer-icon" />}
                 onClick={handleBrowseCourse}
@@ -264,9 +321,20 @@ export default function Home() {
               fullwidth
               outlined
               placeholder="Comment on the readiness of this course for publication on OpenCourseWare."
-              rows={10}
+              rows={4}
               textarea
+              value={comment}
+              onChange={handleCommentChange}
             />
+          </div>
+          <Button
+            className="home__course-drawer-submit-button"
+            label="Submit"
+            trailingIcon={<MdFileUpload className="home__course-drawer-icon" />}
+            onClick={handleSubmit}
+          />
+          <div className="home__course-drawer-spreadsheet-rows">
+            {spreadsheetRowsEl}
           </div>
         </DrawerContent>
     </Drawer>

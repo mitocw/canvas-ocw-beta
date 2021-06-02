@@ -6,7 +6,7 @@ import shortid from '../utils/shortid';
 import './CoursewareCard.scss';
 
 export default function CoursewareCard(props) {
-  const { title, url, instructors, modules, assignments, quizzes, files, onBrowseCourse, onViewCourse } = props;
+  const { id, title, url, instructors, modules, assignments, quizzes, files, onBrowseCourse, onViewCourse } = props;
   const lastIndex = instructors.length - 1;
   const instructorsEl = instructors.map((instructor, index) => {
     if (index !== lastIndex) {
@@ -20,7 +20,7 @@ export default function CoursewareCard(props) {
   const handleLinkClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    onViewCourse(url);
+    onViewCourse(id, url);
   }
   const handleIconButtonClick = (event) => {
     event.preventDefault();

@@ -26,7 +26,8 @@
     "sass-loader": "10.0.4",
     "shortid": "2.2.16",
     "truncate": "2.1.0",
-    "typeface-roboto": "1.1.13"
+    "typeface-roboto": "1.1.13",
+    "use-debounce": "6.0.1"
   },
   "scripts": {
     "start": "craco start",

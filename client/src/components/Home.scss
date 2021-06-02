@@ -70,14 +70,38 @@
     font-style: italic;
   }
 
-  &__course-drawer-button {
+  &__course-drawer-browse-button {
     &#{&} {
       @include button.filled-accessible(colors.$alizarin-crimson);
+
+      .mdc-button__icon.mdc-button__icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 22px;
+      }
+    }
+  }
+
+  &__course-drawer-submit-button {
+    &#{&} {
+      @include button.filled-accessible(colors.$malibu);
+      margin-bottom: 2rem;
+
+      .mdc-button__icon.mdc-button__icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 22px;
+      }
     }
   }
 
   &__course-drawer-icon {
-    margin-left: 0.5rem;
+    margin-left: 0.25rem;
+    margin-right: 0;
   }
 
   &__course-drawer-radio-buttons {
@@ -107,5 +131,16 @@
 
   .mdc-drawer__content {
     overflow: hidden;
+  }
+
+  &__course-drawer-spreadsheet-row {
+    margin-bottom: 1rem;
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  &__course-drawer-spreadsheet-rows {
+    height: 21rem;
+    overflow: auto;
   }
 }

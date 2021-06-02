@@ -136,3 +136,6 @@ dmypy.json
 
 # VSCode
 .vscode
+
+# Google sheets credentials
+gsheets_credentials.json

@@ -14,6 +14,7 @@ export class Courseware {
     files; //number
 
     constructor(courseware) {
+        this.id = courseware['id'];
         this.name = courseware['name'];
         this.url = `${canvasUrl}/${courseware['id']}`;
         this.department = courseware['dept'];
