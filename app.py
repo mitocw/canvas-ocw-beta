@@ -16,10 +16,25 @@ app = Flask(__name__, static_folder='./client/build', static_url_path='/')
 app.config.from_object('config')
 
 # Load raw json file
+# Example of one of the courseware of our json file:
+# "3196": {
+#     "name": "10.34 Numerical Methods: Chem Eng",
+#     "course_code": "10.34",
+#     "dept": "10 - Department of Chemical Engineering",
+#     "created_at": "2020-05-28T02:21:34Z",
+#     "updated_at": "2020-12-23T17:20:26Z",
+#     "n_modules": 17,
+#     "n_assignments": 45,
+#     "n_pages": 17,
+#     "n_files": 294,
+#     "n_quizzes": 2,
+#     "n_visible_tabs": 9,
+#     "n_students": 69
+# },
 with open(r'coursewares.json') as json_file:
     all_coursewares = json.load(json_file)
 
-if not os.path.exists("indexdir"):
+if not os.path.exists('indexdir'):
     schema = Schema(
         id=ID(stored=True),
         name=TEXT(stored=True),
@@ -57,24 +72,21 @@ if not os.path.exists("indexdir"):
         )
     writer.commit()
 
+if not os.path.exists('departments.json'):
+    all_departments = []
+    for id in all_coursewares:
+        courseware = all_coursewares[id]
+        all_departments.append(courseware['dept'])
+    all_departments = list(set(all_departments))
+    all_departments.sort()
+    with open('departments.json', 'w') as json_file:
+        json.dump(all_departments, json_file)
+else:
+    with open(r'departments.json') as json_file:
+        all_departments = json.load(json_file)
+
 ix = index.open_dir('indexdir')
 qp = qparser.MultifieldParser(['name', 'course_code'], ix.schema)
-
-# Example of one of the courseware of our json file:
-# "3196": {
-#     "name": "10.34 Numerical Methods: Chem Eng",
-#     "course_code": "10.34",
-#     "dept": "10 - Department of Chemical Engineering",
-#     "created_at": "2020-05-28T02:21:34Z",
-#     "updated_at": "2020-12-23T17:20:26Z",
-#     "n_modules": 17,
-#     "n_assignments": 45,
-#     "n_pages": 17,
-#     "n_files": 294,
-#     "n_quizzes": 2,
-#     "n_visible_tabs": 9,
-#     "n_students": 69
-# },
 
 # Google sheets authorization
 scope = ['https://www.googleapis.com/auth/drive']
@@ -83,6 +95,9 @@ creds = ServiceAccountCredentials.from_json_keyfile_name('./gsheets_credentials.
 gsclient = gspread.authorize(creds)
 spreadsheet = gsclient.open('publication_candidate_notes')
 worksheet = spreadsheet.worksheet('Sheet1')
+
+def paginate(data, offset=0, limit=5):
+    return data[offset: offset + limit]
 
 def error(exception=None):
     """ render error page
@@ -103,17 +118,35 @@ def index():
 def search():
     if request.method == 'POST':
         search_term = request.form['query']
-        q = qp.parse(search_term)
+        department = request.form['department']
+        offset = int(request.args.get('offset'))
+        limit = int(request.args.get('limit'))
         coursewares = []
-        with ix.searcher() as searcher:
-            results = searcher.search(q)
-            for r in results:
-                id = r.fields()['id']
+        if search_term:
+            q = qp.parse(search_term)
+            with ix.searcher() as searcher:
+                results = searcher.search(q)
+                for r in results:
+                    id = r.fields()['id']
+                    courseware = all_coursewares[id]
+                    courseware['id'] = id
+                    coursewares.append(courseware)
+        else:
+            for id in all_coursewares:
                 courseware = all_coursewares[id]
                 courseware['id'] = id
                 coursewares.append(courseware)
+        # Filter by department
+        if department != 'All':
+            coursewares = [c for c in coursewares if c['dept'] == department]
+    return jsonify({
+        'coursewares': paginate(coursewares, offset, limit),
+        'total_pages': len(coursewares)
+    })
 
-    return jsonify(coursewares)
+@app.route('/departments', methods=['GET'])
+def departments():
+    return jsonify(all_departments)
 
 @app.route('/spreadsheet', methods=['GET', 'POST'])
 def spreadsheet():

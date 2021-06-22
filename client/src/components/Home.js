@@ -6,6 +6,7 @@ import { Radio } from '@rmwc/radio';
 import { Select } from '@rmwc/select';
 import { TextField } from '@rmwc/textfield';
 import { SpreadsheetRow } from '../core/models/SpreadsheetRow';
+import departmentService from '../core/services/DepartmentService';
 import searchService from '../core/services/SearchService';
 import spreadsheetService from '../core/services/SpreadsheetService';
 // import useDebounced from '../hooks/useDebounced';
@@ -15,13 +16,11 @@ import Context from './Context';
 import './Home.scss';
 
 export default function Home() {
-  const timeout = 200;
   const [query, setQuery ] = useState('');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [coursewares, setCoursewares] = useState([]);
-  const [filteredCoursewares, setFilteredCoursewares] = useState([]);
   const [resultsMessage, setResultsMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showContext, setShowContext ] = useState(true);
@@ -42,31 +41,13 @@ export default function Home() {
       setIsLoading(true);
       setIsError(false);
       try {
-        // Do not send a request for an empty string
-        if (search) {
-          const coursewares = await searchService.search(search);
-          setShowContext(false);
-          setCoursewares(coursewares);
-          setFilteredCoursewares(coursewares);
-          setResultsMessage(coursewares.length > 0 ?
-            'Results from MIT\'s Canvas.' :
-            `Sorry, we didn’t find any results for "${search}" term.`
-          );
-          let departments = [];
-          coursewares.forEach((courseware) => {
-            if (courseware.department) {
-              const { department } = courseware;
-              departments.push({
-                label: department,
-                value: department
-              })
-            }
-          });
-          const uniqueDepartments = departments.filter(
-            (elem, index) => departments.findIndex((obj) => obj.value === elem.value) === index
-          );
-          setDepartmentOptions([{ label: 'All', value: 'All' }, ...uniqueDepartments]);
-        }
+        const coursewares = await searchService.search(search, department, 0, 5);
+        setShowContext(false);
+        setCoursewares(coursewares);
+        setResultsMessage(coursewares.length > 0 ?
+          'Results from MIT\'s Canvas.' :
+          `Sorry, we didn’t find any results for "${search}" term.`
+        );
       } catch(error) {
         setIsError(true);
         setErrorMessage(`Sorry, we didn't find any results for "${search}" term.`)
@@ -74,23 +55,26 @@ export default function Home() {
       setIsLoading(false);
     };
     loadCoursewares();
-  }, [search]);
+  }, [search, department]);
 
-  useEffect(
-    () => {
-      let newFilteredCoursewares;
-      if (department === 'All') {
-        newFilteredCoursewares = coursewares;
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+          const depts = await departmentService.load();
+          let departments = [];
+          depts.forEach((dept) => {
+            departments.push({
+              label: dept,
+              value: dept
+            });
+          });
+          setDepartmentOptions([{ label: 'All', value: 'All' }, ...departments]);
+      } catch(error) {
+        console.log('An error occured', error);
       }
-      else if (coursewares && coursewares.length) {
-        newFilteredCoursewares = coursewares.filter((courseware) => {
-          return courseware.department && courseware.department === department;
-        });
-      }
-      setTimeout(() => setFilteredCoursewares(newFilteredCoursewares), timeout);
-    },
-    [department, coursewares]
-  );
+    };
+    loadDepartments();
+  }, []);
 
   useEffect(() => {
     const loadSpreadsheetRows = async () => {
@@ -184,7 +168,7 @@ export default function Home() {
       </div>
     );
   } else {
-    const coursewaresEl = filteredCoursewares.map((courseware) => (
+    const coursewaresEl = coursewares.map((courseware) => (
       <CoursewareCard
         key={shortid()}
         id={courseware.id}

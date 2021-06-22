@@ -4,13 +4,15 @@ import { Courseware } from '../models/Courseware';
 export class SearchService {
     endpoint = '/search';
     
-    search(query) {
+    search(query, department, offset, limit) {
         const formData = new FormData();
         formData.set('query', query);
+        formData.set('department', department);
         const url = `${this.endpoint}`;
-        return httpClient.post(url, formData)
+        return httpClient.post(url, formData, { params: { offset,limit }})
             .then(response => {
-                return response.data.map(courseware => new Courseware(courseware));
+                const coursewares = response.data.coursewares;
+                return coursewares.map(courseware => new Courseware(courseware));
             });
     }
 }
