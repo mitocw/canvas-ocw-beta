@@ -143,4 +143,40 @@
     height: 21rem;
     overflow: auto;
   }
+
+  &__pagination {
+    display: flex;
+    list-style: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+
+    li:first-child {
+      padding: 0.5rem 0.5rem 0.5rem 0;
+    }
+    
+    li {
+      padding: 0.5rem;
+    }
+  }
+
+  &__pagination-page-link {
+    color: colors.$alizarin-crimson;
+  }
+  
+  &__pagination-active-link {
+    color: colors.$mine-shaft;
+  }
+  
+  &__pagination-previous-link, &__pagination-next-link {
+    color: colors.$alizarin-crimson;
+  }
+
+  &__pagination-disabled-link {
+    color: colors.$boulder;
+  }
+
+  &__pagination-break-link {
+    color: colors.$alizarin-crimson;
+  }
 }

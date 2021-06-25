@@ -119,8 +119,14 @@ def search():
     if request.method == 'POST':
         search_term = request.form['query']
         department = request.form['department']
-        offset = int(request.args.get('offset'))
-        limit = int(request.args.get('limit'))
+        offsetStr = request.args.get('offset')
+        limitStr = request.args.get('limit')
+        if offsetStr and limitStr:
+            paginated_response = True
+            offset = int(offsetStr)
+            limit = int(limitStr)
+        else:
+           paginated_response = False
         coursewares = []
         if search_term:
             q = qp.parse(search_term)
@@ -139,10 +145,14 @@ def search():
         # Filter by department
         if department != 'All':
             coursewares = [c for c in coursewares if c['dept'] == department]
-    return jsonify({
-        'coursewares': paginate(coursewares, offset, limit),
-        'total_pages': len(coursewares)
-    })
+    if paginated_response:
+        return jsonify({
+            'coursewares': paginate(coursewares, offset, limit),
+        })
+    else:
+        return jsonify({
+            'total_coursewares': len(coursewares)
+        })
 
 @app.route('/departments', methods=['GET'])
 def departments():

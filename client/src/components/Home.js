@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MdFileUpload, MdOpenInNew } from 'react-icons/md';
+import ReactPaginate from 'react-paginate';
 import { Button } from '@rmwc/button';
 import { Drawer, DrawerContent } from '@rmwc/drawer';
 import { Radio } from '@rmwc/radio';
@@ -16,6 +17,7 @@ import Context from './Context';
 import './Home.scss';
 
 export default function Home() {
+  const coursewarePerPage = 4;
   const [query, setQuery ] = useState('');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +35,8 @@ export default function Home() {
   const [copyright, setCopyright] = useState('yes');
   const [comment, setComment] = useState('');
   const [spreadsheetRows, setSpreadsheetRows] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
   
   useEffect(() => {
     const loadCoursewares = async () => {
@@ -41,13 +45,18 @@ export default function Home() {
       setIsLoading(true);
       setIsError(false);
       try {
-        const coursewares = await searchService.search(search, department, 0, 5);
+        // Get total number of coursewares for search and department
+        const totalCoursewares = await searchService.getToTalCoursewares(search, department);
+        // Get coursewares by page
+        const coursewares = await searchService.search(search, department, offset, coursewarePerPage);
         setShowContext(false);
         setCoursewares(coursewares);
         setResultsMessage(coursewares.length > 0 ?
           'Results from MIT\'s Canvas.' :
           `Sorry, we didn’t find any results for "${search}" term.`
         );
+         // Set number of pages
+         setPageCount(Math.ceil(totalCoursewares / coursewarePerPage));
       } catch(error) {
         setIsError(true);
         setErrorMessage(`Sorry, we didn't find any results for "${search}" term.`)
@@ -55,7 +64,7 @@ export default function Home() {
       setIsLoading(false);
     };
     loadCoursewares();
-  }, [search, department]);
+  }, [search, department, offset, setPageCount]);
 
   useEffect(() => {
     const loadDepartments = async () => {
@@ -98,23 +107,23 @@ export default function Home() {
     if (event.keyCode === 13) {
       setSearch(query);
     }
-  }
+  };
   
   const buttonClick = () => setSearch(query);
 
   const departmentChange = (event) => {
     setDepartment(event.currentTarget.value);
-  }
+  };
 
   const handleBrowseCourseFromCard = (url) => {
     window.open(url, '_blank');
-  }
+  };
 
   const handleViewCourseFromCard = (id, url) => {
     setCoursewareUrl(url);
     setCoursewareId(id);
     setDrawerOpen(true);
-  }
+  };
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
@@ -124,11 +133,11 @@ export default function Home() {
     setCandidate('yes');
     setCopyright('yes');
     setComment('');
-  }
+  };
 
   const handleBrowseCourse = () => {
     window.open(coursewareUrl, '_blank');
-  }
+  };
 
   // const setCommentDebounced = useDebounced(value => setComment(value));
   const handleCandidateChange = (event) => setCandidate(String(event.currentTarget.value));
@@ -151,6 +160,12 @@ export default function Home() {
       }
     };
     createSpreadsheetRow();
+  };
+
+  const handlePageChange = (data) => {
+    const pageNbr = data.selected;
+    const newOffset = Math.ceil(pageNbr * coursewarePerPage);
+    setOffset(newOffset);
   }
 
   let resultsEl;
@@ -321,9 +336,27 @@ export default function Home() {
             {spreadsheetRowsEl}
           </div>
         </DrawerContent>
-    </Drawer>
+      </Drawer>
       {showContext && <Context/>}
       {resultsEl}
+      {pageCount > 1 &&
+        <ReactPaginate
+          previousLabel="Previous"
+          nextLabel="Next"
+          breakLabel="..."
+          pageCount={pageCount}
+          marginPagesDisplayed={3}
+          pageRangeDisplayed={3}
+          onPageChange={handlePageChange}
+          containerClassName="home__pagination"
+          pageLinkClassName="home__pagination-page-link"
+          activeLinkClassName="home__pagination-active-link"
+          previousLinkClassName="home__pagination-previous-link"
+          nextLinkClassName="home__pagination-next-link"
+          disabledLinkClassName="home__pagination-disabled-link"
+          breakLinkClassName="home__pagination-break-link"
+        />
+      }
     </main>
   );
 }
