@@ -99,6 +99,9 @@ gsclient = gspread.authorize(creds)
 spreadsheet = gsclient.open('publication_candidate_notes')
 worksheet = spreadsheet.worksheet('Sheet1')
 
+authsheet = gsclient.open('user_management_canvas_intel')
+authlist = authsheet.worksheet('authorization').col_values(1)
+
 # Google authentication
 ACCESS_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent'
@@ -214,7 +217,8 @@ def logout():
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET'])
 def index():
-    if is_logged_in():
+    user_info = get_user_info()
+    if is_logged_in() and user_info['email'] in authlist:
         # React client build entry point.
         index_template = Template(open('./client/build/index.html').read())
         return index_template.render()
