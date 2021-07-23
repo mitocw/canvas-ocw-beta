@@ -217,11 +217,14 @@ def logout():
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET'])
 def index():
-    user_info = get_user_info()
-    if is_logged_in() and user_info['email'] in authlist:
-        # React client build entry point.
-        index_template = Template(open('./client/build/index.html').read())
-        return index_template.render()
+    if is_logged_in():
+        user_info = get_user_info()
+        if user_info['email'] in authlist:
+            # React client build entry point.
+            index_template = Template(open('./client/build/index.html').read())
+            return index_template.render()
+        else:
+            return '<p>You are not authorized to view this application</p>'
     return '<a class="button" href="/google/login">Google Login</a>'
 
 @app.route('/search', methods=['POST'])
