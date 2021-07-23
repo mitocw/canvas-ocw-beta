@@ -3,16 +3,17 @@ Configuration file for flask sample application
 """
 import os
 
-# Contenful
-CONTENTFUL_SPACE_ID=os.environ.get('CONTENTFUL_SPACE_ID')
-CONTENTFUL_CDA_TOKEN=os.environ.get('CONTENTFUL_CDA_TOKEN')
-CONTENTFUL_CPA_TOKEN=os.environ.get('CONTENTFUL_CPA_TOKEN')
-
-# enable CSRF
+# Enable CSRF
 WTF_CSRF_ENABLED = True
 
-# secret key for authentication
+# Secret key for authentication
 SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "you-will-never-guess")
+
+# Google authentication
+GOOGLE_AUTH_REDIRECT_URI = os.environ.get('GOOGLE_AUTH_REDIRECT_URI')
+GOOGLE_BASE_URI = os.environ.get('GOOGLE_BASE_URI')
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
 SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True

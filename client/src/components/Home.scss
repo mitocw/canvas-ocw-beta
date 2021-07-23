@@ -1,6 +1,8 @@
 @use '../styles/functions/color';
 @use '../styles/colors';
 @use '@material/button';
+@use '@material/drawer';
+@use '@material/radio';
 @use '@material/select';
 @use '@material/textfield';
 
@@ -46,19 +48,135 @@
     font-size: 14px;
     margin : 0.5rem 0;
   }
-}
 
-// --mdc-theme-primary: colors.$mine-shaft;
-// --mdc-theme--on-primary: green;
-// --mdc-theme-secondary: pink;
-// --mdc-theme--on-secondary: gray;
-// --mdc-theme-surface: yellow;
-// --mdc-theme--on-surface: green;
-// @include theme.prop('primary', blue);
-// @include theme.prop('secondary', blue);
-// @include theme.prop('background', blue);
-// @include theme.prop('surface', blue);
-// @include theme.prop('on-primary', blue);
-// @include theme.prop('on-secondary', blue);
-// @include theme.prop('background', blue);
-// @include theme.prop('on-surface', blue);
+  &__course-drawer-content {
+    padding: 2rem;
+    background: color.color(drawer-background);
+  }
+
+  &__course-drawer-subcontent {
+    margin-bottom: 2rem;
+  }
+
+  &__course-drawer-subcontent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__course-drawer-subtitle {
+    margin: 0;
+    font-size: 18px;
+    font-style: italic;
+  }
+
+  &__course-drawer-browse-button {
+    &#{&} {
+      @include button.filled-accessible(colors.$alizarin-crimson);
+
+      .mdc-button__icon.mdc-button__icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 22px;
+      }
+    }
+  }
+
+  &__course-drawer-submit-button {
+    &#{&} {
+      @include button.filled-accessible(colors.$malibu);
+      margin-bottom: 2rem;
+
+      .mdc-button__icon.mdc-button__icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 22px;
+      }
+    }
+  }
+
+  &__course-drawer-icon {
+    margin-left: 0.25rem;
+    margin-right: 0;
+  }
+
+  &__course-drawer-radio-buttons {
+    display: flex;
+  }
+  
+  &__course-drawer-radio-button {
+    margin-right: 1rem;
+    font-size: 16px;
+  }
+
+  &__course-drawer-text-area {
+    &#{&} {
+      margin-top: 1rem;
+      @include textfield.fill-color(colors.$white);
+      @include textfield.outline-color(colors.$white);
+      @include textfield.focused-outline-color(colors.$white);
+      @include textfield.hover-outline-color(colors.$white);
+    }
+  }
+
+  .mdc-drawer--modal {
+    top: 0;
+    width: 750px;
+    height: 100%;
+  }
+
+  .mdc-drawer__content {
+    overflow: hidden;
+  }
+
+  &__course-drawer-spreadsheet-row {
+    margin-bottom: 1rem;
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  &__course-drawer-spreadsheet-rows {
+    height: 21rem;
+    overflow: auto;
+  }
+
+  &__pagination {
+    display: flex;
+    list-style: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+
+    li:first-child {
+      padding: 0.5rem 0.5rem 0.5rem 0;
+    }
+    
+    li {
+      padding: 0.5rem;
+    }
+  }
+
+  &__pagination-page-link {
+    color: colors.$alizarin-crimson;
+  }
+  
+  &__pagination-active-link {
+    color: colors.$mine-shaft;
+  }
+  
+  &__pagination-previous-link, &__pagination-next-link {
+    color: colors.$alizarin-crimson;
+  }
+
+  &__pagination-disabled-link {
+    color: colors.$boulder;
+  }
+
+  &__pagination-break-link {
+    color: colors.$alizarin-crimson;
+  }
+}

@@ -1,14 +1,89 @@
 import os
 import requests
-from flask import current_app, Flask, jsonify, make_response, redirect, render_template, request
+import json
+import functools
+import gspread
+import google.oauth2.credentials
+import googleapiclient.discovery
+from flask import current_app, Flask, jsonify, make_response, redirect, render_template, request, session
 from jinja2 import Template
 from string import Template as Temp
+from oauth2client.service_account import ServiceAccountCredentials
+from authlib.integrations.requests_client import OAuth2Session
 from python_graphql_client import GraphqlClient
+from datetime import datetime
+from whoosh.fields import Schema, ID, TEXT, NUMERIC, DATETIME
+from whoosh import index, qparser
 
 
 app = Flask(__name__, static_folder='./client/build', static_url_path='/')
 app.config.from_object('config')
 
+# Load raw json file
+with open(r'coursewares.json') as json_file:
+    all_coursewares = json.load(json_file)
+
+if not os.path.exists('indexdir'):
+    schema = Schema(
+        id=ID(stored=True),
+        name=TEXT(stored=True),
+        course_code=TEXT(stored=True),
+        dept=TEXT(stored=True)
+    )
+    os.mkdir("indexdir")
+    ix = index.create_in('indexdir', schema)
+    writer = ix.writer()
+    for id in all_coursewares:
+        courseware = all_coursewares[id]
+        writer.add_document(
+            id=id,
+            name=courseware['name'],
+            course_code=courseware['course_code'],
+            dept=courseware['dept'],
+        )
+    writer.commit()
+
+if not os.path.exists('departments.json'):
+    all_departments = []
+    for id in all_coursewares:
+        courseware = all_coursewares[id]
+        all_departments.append(courseware['dept'])
+    all_departments = list(set(all_departments))
+    all_departments.sort()
+    with open('departments.json', 'w') as json_file:
+        json.dump(all_departments, json_file)
+else:
+    with open(r'departments.json') as json_file:
+        all_departments = json.load(json_file)
+
+ix = index.open_dir('indexdir')
+qp = qparser.MultifieldParser(['name', 'course_code'], ix.schema)
+
+# Google sheets authorization
+scope = ['https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('./gsheets_credentials.json', scope)
+gsclient = gspread.authorize(creds)
+spreadsheet = gsclient.open('publication_candidate_notes')
+worksheet = spreadsheet.worksheet('Sheet1')
+
+authsheet = gsclient.open('user_management_canvas_intel')
+authlist = authsheet.worksheet('authorization').col_values(1)
+
+# Google authentication
+ACCESS_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
+AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent'
+AUTHORIZATION_SCOPE ='openid email profile'
+
+AUTH_REDIRECT_URI = app.config['GOOGLE_AUTH_REDIRECT_URI']
+BASE_URI = app.config['GOOGLE_BASE_URI']
+CLIENT_ID = app.config['GOOGLE_CLIENT_ID']
+CLIENT_SECRET = app.config['GOOGLE_CLIENT_SECRET']
+
+AUTH_TOKEN_KEY = 'auth_token'
+AUTH_STATE_KEY = 'auth_state'
+
+def paginate(data, offset=0, limit=5):
+    return data[offset: offset + limit]
 
 def error(exception=None):
     """ render error page
@@ -17,136 +92,179 @@ def error(exception=None):
     """
     return render_template('error.html')
 
+def is_logged_in():
+    return True if AUTH_TOKEN_KEY in session else False
+
+def build_credentials():
+    if not is_logged_in():
+        raise Exception('User must be logged in')
+
+    oauth2_tokens = session[AUTH_TOKEN_KEY]
+    
+    return google.oauth2.credentials.Credentials(
+        oauth2_tokens['access_token'],
+        refresh_token=oauth2_tokens['refresh_token'],
+        client_id=CLIENT_ID,
+        client_secret=CLIENT_SECRET,
+        token_uri=ACCESS_TOKEN_URI
+    )
+
+def get_user_info():
+    credentials = build_credentials()
+
+    oauth2_client = googleapiclient.discovery.build(
+        'oauth2', 'v2',
+        credentials=credentials
+    )
+
+    return oauth2_client.userinfo().get().execute()
+
+def no_cache(view):
+    @functools.wraps(view)
+    def no_cache_impl(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+
+    return functools.update_wrapper(no_cache_impl, view)
+
+@app.route('/google/login')
+@no_cache
+def login():
+    oauth2_session = OAuth2Session(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        scope=AUTHORIZATION_SCOPE,
+        redirect_uri=AUTH_REDIRECT_URI
+    )
+  
+    uri, state = oauth2_session.create_authorization_url(AUTHORIZATION_URL)
+
+    session[AUTH_STATE_KEY] = state
+    session.permanent = True
+
+    return redirect(uri, code=302)
+
+@app.route('/google/auth')
+@no_cache
+def auth_redirect():
+    req_state = request.args.get('state', default=None, type=None)
+
+    if req_state != session[AUTH_STATE_KEY]:
+        response = make_response('Invalid state parameter', 401)
+        return response
+    
+    oauth2_session = OAuth2Session(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        scope=AUTHORIZATION_SCOPE,
+        state=session[AUTH_STATE_KEY],
+        redirect_uri=AUTH_REDIRECT_URI
+    )
+
+    oauth2_tokens = oauth2_session.fetch_token(
+        ACCESS_TOKEN_URI,
+        authorization_response=request.url
+    )
+
+    session[AUTH_TOKEN_KEY] = oauth2_tokens
+
+    return redirect(BASE_URI, code=302)
+
+@app.route('/google/logout')
+@no_cache
+def logout():
+    session.pop(AUTH_TOKEN_KEY, None)
+    session.pop(AUTH_STATE_KEY, None)
+
+    return redirect(BASE_URI, code=302)
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET'])
 def index():
-    # React client build entry point. It contains a "content_item_return_url" placeholder that is loaded in
-    # a JS var as it is needed in the reuse form located in client/components/VideoCard.js
-    index_template = Template(open('./client/build/index.html').read())
-    return index_template.render(content_item_return_url='')
-
+    if is_logged_in():
+        user_info = get_user_info()
+        if user_info['email'] in authlist:
+            # React client build entry point.
+            index_template = Template(open('./client/build/index.html').read())
+            return index_template.render()
+        else:
+            return '<p>You are not authorized to view this application</p>'
+    return '<a href="/google/login">Google Login</a>'
 
 @app.route('/search', methods=['POST'])
 def search():
-    result = []
     if request.method == 'POST':
-        # Instantiate graphql client with Contentful's endpoint
-        bearer_token = Temp('Bearer $token')
-        endpoint = Temp('https://graphql.contentful.com/content/v1/spaces/$space_id')
-        headers = {
-            'Authorization': bearer_token.substitute(token=current_app.config['CONTENTFUL_CPA_TOKEN'])
-        }
-        client = GraphqlClient(
-            endpoint=endpoint.substitute(space_id=current_app.config['CONTENTFUL_SPACE_ID']),
-            headers=headers
-        )
-
         search_term = request.form['query']
-        variables = {"searchTerm": search_term}
-
-        ##### Search on name, syllabusBody fields and gather courseware ids #####
-        query = """
-            query($searchTerm: String) {
-                coursewareCollection(preview: true, where: {
-                    OR: [
-                        { name_contains: $searchTerm },
-                        { syllabusBody_contains: $searchTerm }
-                    ]
-                }) {
-                    items {
-                        id
-                    }
-                }
-            }
-        """
-        # Synchronous request
-        result = client.execute(query=query, variables=variables)
-        name_syllabus_courseware_ids = []
-        items = result['data']['coursewareCollection']['items']
-        for item in items:
-            name_syllabus_courseware_ids.append(str(item['id']))
-        
-        ##### Search on teacher field and gather courseware ids #####
-        query = """
-            fragment CourseInfo on Courseware {
-                id
-            }
-
-            query($searchTerm: String) {
-                teacherCollection(preview: true, where: {
-                    displayName_contains: $searchTerm
-                }) {
-                    items {
-                        linkedFrom {
-                            entryCollection(preview: true) {
-                                items {
-                                    ...CourseInfo
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        """
-        # Synchronous request
-        result = client.execute(query=query, variables=variables)
-        teacher_courseware_ids = []
-        items = result['data']['teacherCollection']['items']
-        for item in items:
-            other_items = item['linkedFrom']['entryCollection']['items']
-            for other_item in other_items:
-                teacher_courseware_ids.append(str(other_item['id']))
-        
-        ##### Concatenate courseware lists and remove dupes #####
-        courseware_ids = list(set(name_syllabus_courseware_ids + teacher_courseware_ids))
-
-        # Search by course id
-        query = """
-            fragment DepartmentInfo on Department {
-                name
-            }
-
-            fragment TeacherInfo on Teacher {
-                displayName
-            }
-
-            query($coursewareIds: [String]) {
-                coursewareCollection(preview: true, where: {
-                    id_in: $coursewareIds
-                }) {
-                    items {
-                        name
-                        url
-                        department {
-                            ...DepartmentInfo
-                        }
-                        teachersCollection {
-                            items {
-                                ...TeacherInfo
-                            }
-                        }
-                    }
-                }
-            }
-        """
-        variables = {"coursewareIds": courseware_ids}
-        result = client.execute(query=query, variables=variables)
+        department = request.form['department']
+        offsetStr = request.args.get('offset')
+        limitStr = request.args.get('limit')
+        if offsetStr and limitStr:
+            paginated_response = True
+            offset = int(offsetStr)
+            limit = int(limitStr)
+        else:
+           paginated_response = False
         coursewares = []
-        items = result['data']['coursewareCollection']['items']
-        for item in items:
-            teachers = []
-            for teacher in item['teachersCollection']['items']:
-                teachers.append(teacher)
-            courseware = {}
-            courseware['name'] = item['name']
-            courseware['url'] = item['url']
-            courseware['department'] = item['department']
-            courseware['teachers'] = teachers
-            coursewares.append(courseware)
+        if search_term:
+            q = qp.parse(search_term)
+            with ix.searcher() as searcher:
+                results = searcher.search(q)
+                for r in results:
+                    id = r.fields()['id']
+                    courseware = all_coursewares[id]
+                    courseware['id'] = id
+                    coursewares.append(courseware)
+        else:
+            for id in all_coursewares:
+                courseware = all_coursewares[id]
+                courseware['id'] = id
+                coursewares.append(courseware)
+        # Filter by department
+        if department != 'All':
+            coursewares = [c for c in coursewares if c['dept'] == department]
+    if paginated_response:
+        return jsonify({
+            'coursewares': paginate(coursewares, offset, limit),
+        })
+    else:
+        return jsonify({
+            'total_coursewares': len(coursewares)
+        })
 
-    return jsonify(coursewares)
+@app.route('/departments', methods=['GET'])
+def departments():
+    return jsonify(all_departments)
 
+@app.route('/spreadsheet', methods=['GET', 'POST'])
+def spreadsheet():
+    if request.method == 'GET':
+        courseware_id = request.args.get('coursewareId', type = int)
+        records = worksheet.get_all_records()
+        # Filter records by courseware_id
+        filtered = [r for r in records if r['courseware_id'] == courseware_id]
+        # Sort by date, most recent first
+        response = sorted(filtered, key=lambda r: datetime.strptime(r['date'], '%m-%d-%Y %H:%M:%S.%f'), reverse=True)
+    else:
+        courseware_id = request.form['courseware_id']
+        publication_candidate = request.form['publication_candidate']
+        minimal_copyright = request.form['minimal_copyright']
+        comment = request.form['comment']
+        date = request.form['date']
+        # Save new entry to Google sheets
+        worksheet.append_row([courseware_id, publication_candidate, minimal_copyright, comment, date])
+        # Build response
+        response = {
+            'courseware_id': courseware_id,
+            'publication_candidate': publication_candidate,
+            'minimal_copyright': minimal_copyright,
+            'comment': comment,
+            'date': date
+        }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True, port=5000)

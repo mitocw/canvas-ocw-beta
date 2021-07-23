@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+coursewares.json
+departments.json
+indexdir/
+
 # C extensions
 *.so
 
@@ -133,3 +137,6 @@ dmypy.json
 
 # VSCode
 .vscode
+
+# Google sheets credentials
+gsheets_credentials.json
