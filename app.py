@@ -225,7 +225,7 @@ def index():
             return index_template.render()
         else:
             return '<p>You are not authorized to view this application</p>'
-    return '<a class="button" href="/google/login">Google Login</a>'
+    return '<a href="/google/login">Google Login</a>'
 
 @app.route('/search', methods=['POST'])
 def search():
