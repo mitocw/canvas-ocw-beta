@@ -20,21 +20,6 @@ app = Flask(__name__, static_folder='./client/build', static_url_path='/')
 app.config.from_object('config')
 
 # Load raw json file
-# Example of one of the courseware of our json file:
-# "3196": {
-#     "name": "10.34 Numerical Methods: Chem Eng",
-#     "course_code": "10.34",
-#     "dept": "10 - Department of Chemical Engineering",
-#     "created_at": "2020-05-28T02:21:34Z",
-#     "updated_at": "2020-12-23T17:20:26Z",
-#     "n_modules": 17,
-#     "n_assignments": 45,
-#     "n_pages": 17,
-#     "n_files": 294,
-#     "n_quizzes": 2,
-#     "n_visible_tabs": 9,
-#     "n_students": 69
-# },
 with open(r'coursewares.json') as json_file:
     all_coursewares = json.load(json_file)
 
@@ -44,15 +29,6 @@ if not os.path.exists('indexdir'):
         name=TEXT(stored=True),
         course_code=TEXT(stored=True),
         dept=TEXT(stored=True)
-        # created_at=DATETIME(),
-        # updated_at=DATETIME(),
-        # n_modules=NUMERIC(),
-        # n_assignments=NUMERIC(),
-        # n_pages=NUMERIC(),
-        # n_files=NUMERIC(),
-        # n_quizzes=NUMERIC(),
-        # n_visible_tabs=NUMERIC(),
-        # n_students=NUMERIC()
     )
     os.mkdir("indexdir")
     ix = index.create_in('indexdir', schema)
@@ -64,15 +40,6 @@ if not os.path.exists('indexdir'):
             name=courseware['name'],
             course_code=courseware['course_code'],
             dept=courseware['dept'],
-            # created_at=datetime.fromisoformat(courseware['created_at'][:-1]),
-            # updated_at=datetime.fromisoformat(courseware['updated_at'][:-1]),
-            # n_modules=courseware['n_modules'],
-            # n_assignments=courseware['n_assignments'],
-            # n_pages=courseware['n_pages'],
-            # n_files=courseware['n_files'],
-            # n_quizzes=courseware['n_quizzes'],
-            # n_visible_tabs=courseware['n_visible_tabs'],
-            # n_students=courseware['n_students']
         )
     writer.commit()
 

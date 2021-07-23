@@ -10,7 +10,6 @@ import { SpreadsheetRow } from '../core/models/SpreadsheetRow';
 import departmentService from '../core/services/DepartmentService';
 import searchService from '../core/services/SearchService';
 import spreadsheetService from '../core/services/SpreadsheetService';
-// import useDebounced from '../hooks/useDebounced';
 import shortid from '../utils/shortid';
 import CoursewareCard from './CoursewareCard';
 import Context from './Context';
@@ -139,11 +138,9 @@ export default function Home() {
     window.open(coursewareUrl, '_blank');
   };
 
-  // const setCommentDebounced = useDebounced(value => setComment(value));
   const handleCandidateChange = (event) => setCandidate(String(event.currentTarget.value));
   const handleCopyrightChange = (event) => setCopyright(String(event.currentTarget.value));
   const handleCommentChange = (event) => {
-    // setCommentDebounced(String(event.currentTarget.value));
     setComment(String(event.currentTarget.value));
   }
 
