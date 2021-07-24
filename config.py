@@ -6,8 +6,11 @@ import os
 # Enable CSRF
 WTF_CSRF_ENABLED = True
 
-# Secret key for authentication
-SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "you-will-never-guess")
+# Secret key for client-side sessions
+SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
+
+# Google sheets credentials
+GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 
 # Google authentication
 GOOGLE_AUTH_REDIRECT_URI = os.environ.get('GOOGLE_AUTH_REDIRECT_URI')

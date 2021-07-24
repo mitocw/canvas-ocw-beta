@@ -60,14 +60,7 @@ ix = index.open_dir('indexdir')
 qp = qparser.MultifieldParser(['name', 'course_code'], ix.schema)
 
 # Google sheets authorization
-scope = ['https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('./gsheets_credentials.json', scope)
-gsclient = gspread.authorize(creds)
-spreadsheet = gsclient.open('publication_candidate_notes')
-worksheet = spreadsheet.worksheet('Sheet1')
-
-authsheet = gsclient.open('user_management_canvas_intel')
-authlist = authsheet.worksheet('authorization').col_values(1)
+GOOGLE_APPLICATION_CREDENTIALS = app.config['GOOGLE_APPLICATION_CREDENTIALS']
 
 # Google authentication
 ACCESS_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
@@ -81,6 +74,9 @@ CLIENT_SECRET = app.config['GOOGLE_CLIENT_SECRET']
 
 AUTH_TOKEN_KEY = 'auth_token'
 AUTH_STATE_KEY = 'auth_state'
+
+worksheet = None
+authlist = None
 
 def paginate(data, offset=0, limit=5):
     return data[offset: offset + limit]
@@ -129,6 +125,18 @@ def no_cache(view):
         return response
 
     return functools.update_wrapper(no_cache_impl, view)
+
+@app.before_first_request
+def get_google_sheets():
+    scope = ['https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_APPLICATION_CREDENTIALS, scope)
+    gsclient = gspread.authorize(creds)
+    spreadsheet = gsclient.open('publication_candidate_notes')
+    authsheet = gsclient.open('user_management_canvas_intel')
+    global worksheet
+    global authlist
+    worksheet = spreadsheet.worksheet('Sheet1')
+    authlist = authsheet.worksheet('authorization').col_values(1)
 
 @app.route('/google/login')
 @no_cache
