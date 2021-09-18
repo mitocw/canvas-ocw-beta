@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import re
 import functools
 import gspread
 import google.oauth2.credentials
@@ -44,12 +45,24 @@ if not os.path.exists('indexdir'):
     writer.commit()
 
 if not os.path.exists('departments.json'):
-    all_departments = []
+    unsorted_departments = []
+    department_numbers = []
+    department_words = []
     for id in all_coursewares:
         courseware = all_coursewares[id]
-        all_departments.append(courseware['dept'])
-    all_departments = list(set(all_departments))
-    all_departments.sort()
+        unsorted_departments.append(courseware['dept'])
+    unsorted_departments = list(set(unsorted_departments))
+    for department in unsorted_departments:
+        # Check if first word of department contains any digit
+        if any(map(str.isdigit, department.split(' ', 1)[0])):
+            department_numbers.append(department)
+        else:
+            department_words.append(department)
+    convert = lambda text: int(text) if text.isdigit() else text 
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)] 
+    department_numbers.sort(key=alphanum_key)
+    department_words.sort()
+    all_departments = department_numbers + department_words
     with open('departments.json', 'w') as json_file:
         json.dump(all_departments, json_file)
 else:
