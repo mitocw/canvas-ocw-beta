@@ -219,6 +219,8 @@ def index():
 def search():
     if request.method == 'POST':
         search_term = request.form['query']
+        if search_term:
+            search_term = '*' + search_term + '*' # Add wildcards for partial matches
         department = request.form['department']
         offsetStr = request.args.get('offset')
         limitStr = request.args.get('limit')
