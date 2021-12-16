@@ -3,6 +3,7 @@ import requests
 import json
 import re
 import functools
+import copy
 import gspread
 import google.oauth2.credentials
 import googleapiclient.discovery
@@ -24,23 +25,27 @@ app.config.from_object('config')
 with open(r'coursewares.json') as json_file:
     all_coursewares = json.load(json_file)
 
+all_coursewares_indexed = {}
+for courseware in all_coursewares:
+    courseware['id'] = courseware.pop('course_id')
+    all_coursewares_indexed[courseware['id']] = courseware
+
 if not os.path.exists('indexdir'):
     schema = Schema(
         id=ID(stored=True),
         name=TEXT(stored=True),
-        course_code=TEXT(stored=True),
-        dept=TEXT(stored=True)
+        dept=TEXT(stored=True),
+        enrollment_term=TEXT(stored=True)
     )
     os.mkdir("indexdir")
     ix = index.create_in('indexdir', schema)
     writer = ix.writer()
-    for id in all_coursewares:
-        courseware = all_coursewares[id]
+    for courseware in all_coursewares:
         writer.add_document(
-            id=id,
+            id=courseware['id'],
             name=courseware['name'],
-            course_code=courseware['course_code'],
             dept=courseware['dept'],
+            enrollment_term=courseware['enrollment_term']
         )
     writer.commit()
 
@@ -48,8 +53,7 @@ if not os.path.exists('departments.json'):
     unsorted_departments = []
     department_numbers = []
     department_words = []
-    for id in all_coursewares:
-        courseware = all_coursewares[id]
+    for courseware in all_coursewares:
         unsorted_departments.append(courseware['dept'])
     unsorted_departments = list(set(unsorted_departments))
     for department in unsorted_departments:
@@ -70,7 +74,7 @@ else:
         all_departments = json.load(json_file)
 
 ix = index.open_dir('indexdir')
-qp = qparser.MultifieldParser(['name', 'course_code'], ix.schema)
+qp = qparser.MultifieldParser(['name'], ix.schema)
 
 # Google sheets authorization
 GOOGLE_APPLICATION_CREDENTIALS = app.config['GOOGLE_APPLICATION_CREDENTIALS']
@@ -160,7 +164,7 @@ def login():
         scope=AUTHORIZATION_SCOPE,
         redirect_uri=AUTH_REDIRECT_URI
     )
-  
+
     uri, state = oauth2_session.create_authorization_url(AUTHORIZATION_URL)
 
     session[AUTH_STATE_KEY] = state
@@ -229,7 +233,7 @@ def search():
             offset = int(offsetStr)
             limit = int(limitStr)
         else:
-           paginated_response = False
+            paginated_response = False
         coursewares = []
         if search_term:
             q = qp.parse(search_term)
@@ -237,14 +241,9 @@ def search():
                 results = searcher.search(q)
                 for r in results:
                     id = r.fields()['id']
-                    courseware = all_coursewares[id]
-                    courseware['id'] = id
-                    coursewares.append(courseware)
+                    coursewares.append(all_coursewares_indexed[id])
         else:
-            for id in all_coursewares:
-                courseware = all_coursewares[id]
-                courseware['id'] = id
-                coursewares.append(courseware)
+            coursewares = copy.deepcopy(all_coursewares)
         # Filter by department
         if department != 'All':
             coursewares = [c for c in coursewares if c['dept'] == department]
