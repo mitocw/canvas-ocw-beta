@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "16.9.1"
+    "node": "16.13.1"
   },
   "scripts": {
     "heroku-postbuild": "cd client && npm install && npm run build"
