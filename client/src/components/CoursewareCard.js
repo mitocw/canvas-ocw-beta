@@ -6,7 +6,7 @@ import shortid from '../utils/shortid';
 import './CoursewareCard.scss';
 
 export default function CoursewareCard(props) {
-  const { id, title, url, instructors, modules, assignments, quizzes, files, onBrowseCourse, onViewCourse } = props;
+  const { id, title, term, url, instructors, modules, assignments, quizzes, files, onBrowseCourse, onViewCourse } = props;
   const lastIndex = instructors.length - 1;
   const instructorsEl = instructors.map((instructor, index) => {
     if (index !== lastIndex) {
@@ -31,7 +31,10 @@ export default function CoursewareCard(props) {
   return (
       <Card className="courseware-card">
         <div className="courseware-card__title">
-          <a className="courseware-card__link"  href={url} onClick={handleLinkClick}>{title}</a>
+          <div className="courseware-card__subtitle">
+            <a className="courseware-card__link" href={url} onClick={handleLinkClick}>{title}</a>
+            <span className="courseware-card__term">{term}</span>
+          </div>
           <IconButton
             className="courseware-card__icon-button"
             icon={<MdOpenInNew className="courseware-card__icon" />}

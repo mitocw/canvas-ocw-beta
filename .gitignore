@@ -137,6 +137,7 @@ dmypy.json
 # Application data. Whoosh index.
 coursewares.json
 departments.json
+terms.json
 indexdir/
 
 # Google sheets credentials

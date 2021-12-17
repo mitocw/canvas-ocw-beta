@@ -33,6 +33,7 @@
     font-weight: 700;
     font-style: normal;
     text-decoration: none;
+    margin-right: 1rem;
 
     &:hover {
       color: color.color(card-title-hover);
@@ -68,7 +69,7 @@
     margin: 0.5rem 0 1rem 0;
   }
 
-  &__subfields {
+  &__subfields, &__term {
     color: color.color(card-subfields);
     font-size: 14px;
     font-weight: normal;

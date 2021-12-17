@@ -7,6 +7,7 @@ import copy
 import gspread
 import google.oauth2.credentials
 import googleapiclient.discovery
+from functools import cmp_to_key
 from flask import current_app, Flask, jsonify, make_response, redirect, render_template, request, session
 from jinja2 import Template
 from string import Template as Temp
@@ -50,11 +51,9 @@ if not os.path.exists('indexdir'):
     writer.commit()
 
 if not os.path.exists('departments.json'):
-    unsorted_departments = []
     department_numbers = []
     department_words = []
-    for courseware in all_coursewares:
-        unsorted_departments.append(courseware['dept'])
+    unsorted_departments = [courseware['dept'] for courseware in all_coursewares]
     unsorted_departments = list(set(unsorted_departments))
     for department in unsorted_departments:
         # Check if first word of department contains any digit
@@ -72,6 +71,30 @@ if not os.path.exists('departments.json'):
 else:
     with open(r'departments.json') as json_file:
         all_departments = json.load(json_file)
+
+if not os.path.exists('terms.json'):
+    seasons = {
+        'Spring': 1,
+        'Summer': 2,
+        'Fall': 3,
+        'Winter': 4,
+    }
+    # Assumes strings are in the following format: Fall Term (AY 2020-2021)
+    def cmp(a, b):
+        a_list = a.split()
+        a_season,a_year = a_list[0],a_list[3].split('-')[0]
+        b_list = b.split()
+        b_season,b_year = b_list[0],b_list[3].split('-')[0]
+        return int(b_year) - int(a_year) or seasons[a_season] - seasons[b_season]
+
+    unsorted_terms = [courseware['enrollment_term'] for courseware in all_coursewares]
+    unsorted_terms = list(set(unsorted_terms))
+    all_terms = sorted(unsorted_terms, key=cmp_to_key(cmp))
+    with open('terms.json', 'w') as json_file:
+        json.dump(all_terms, json_file)
+else:
+    with open(r'terms.json') as json_file:
+        all_terms = json.load(json_file)
 
 ix = index.open_dir('indexdir')
 qp = qparser.MultifieldParser(['name'], ix.schema)
@@ -225,7 +248,8 @@ def search():
         search_term = request.form['query']
         if search_term:
             search_term = '*' + search_term + '*' # Add wildcards for partial matches
-        department = request.form['department']
+        dept = request.form['department']
+        enrollment_term = request.form['term']
         offsetStr = request.args.get('offset')
         limitStr = request.args.get('limit')
         if offsetStr and limitStr:
@@ -244,9 +268,17 @@ def search():
                     coursewares.append(all_coursewares_indexed[id])
         else:
             coursewares = copy.deepcopy(all_coursewares)
-        # Filter by department
-        if department != 'All':
-            coursewares = [c for c in coursewares if c['dept'] == department]
+        # Filter by department and enrollment term
+        if dept != 'All':
+            if enrollment_term != 'All':
+                coursewares = [c for c in coursewares if c['dept'] == dept and c['enrollment_term'] == enrollment_term]
+            else:
+                coursewares = [c for c in coursewares if c['dept'] == dept]
+        else:
+            if enrollment_term != 'All':
+                coursewares = [c for c in coursewares if c['enrollment_term'] == enrollment_term]
+            else:
+                pass
     if paginated_response:
         return jsonify({
             'coursewares': paginate(coursewares, offset, limit),
@@ -259,6 +291,10 @@ def search():
 @app.route('/departments', methods=['GET'])
 def departments():
     return jsonify(all_departments)
+
+@app.route('/terms', methods=['GET'])
+def terms():
+    return jsonify(all_terms)
 
 @app.route('/spreadsheet', methods=['GET', 'POST'])
 def spreadsheet():

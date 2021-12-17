@@ -4,6 +4,7 @@ export class Courseware {
     name;
     url;
     department;
+    term;
     teachers;
     modules; // number
     assignments; // number
@@ -15,6 +16,7 @@ export class Courseware {
         this.name = courseware['name'];
         this.url = `${canvasUrl}/${courseware['id']}`;
         this.department = courseware['dept'];
+        this.term = courseware['enrollment_term'];
         this.teachers = [];
         this.modules = courseware['n_modules'];
         this.assignments = courseware['n_assignments'];

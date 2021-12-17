@@ -32,7 +32,13 @@
     }
   }
 
-  &__department-filter {
+  &__filters {
+    display: flex;
+    margin-top: 2rem;
+    min-width: 60rem;
+  }
+
+  &__filter {
     &#{&} {
       @include select.ink-color(colors.$mine-shaft);
       @include select.container-fill-color(colors.$white);
@@ -40,8 +46,16 @@
       @include select.label-color(colors.$mine-shaft);
       @include select.focused-label-color(colors.$mine-shaft);
       @include select.focused-outline-color(colors.$mine-shaft);
-      margin-top: 2rem;
     }
+  }
+
+  &__department-filter {
+    min-width: 38rem;
+    margin-right: 2.1rem;
+  }
+
+  &__term-filter {
+    min-width: 20rem;
   }
 
   &__loading-message, &__results-message, &__error-message {

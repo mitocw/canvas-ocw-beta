@@ -9,6 +9,7 @@ import { TextField } from '@rmwc/textfield';
 import { SpreadsheetRow } from '../core/models/SpreadsheetRow';
 import departmentService from '../core/services/DepartmentService';
 import searchService from '../core/services/SearchService';
+import termService from '../core/services/TermService';
 import spreadsheetService from '../core/services/SpreadsheetService';
 import shortid from '../utils/shortid';
 import CoursewareCard from './CoursewareCard';
@@ -27,6 +28,8 @@ export default function Home() {
   const [showContext, setShowContext ] = useState(true);
   const [department, setDepartment] = useState('All');
   const [departmentOptions, setDepartmentOptions] = useState([{ label: 'All', value: 'All' }]);
+  const [term, setTerm] = useState('All');
+  const [termOptions, setTermOptions] = useState([{ label: 'All', value: 'All' }]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [coursewareUrl, setCoursewareUrl] = useState('');
   const [coursewareId, setCoursewareId] = useState('');
@@ -44,18 +47,18 @@ export default function Home() {
       setIsLoading(true);
       setIsError(false);
       try {
-        // Get total number of coursewares for search and department
-        const totalCoursewares = await searchService.getToTalCoursewares(search, department);
+        // Get total number of coursewares for search, department, and term
+        const totalCoursewares = await searchService.getToTalCoursewares(search, department, term);
         // Get coursewares by page
-        const coursewares = await searchService.search(search, department, offset, coursewarePerPage);
+        const coursewares = await searchService.search(search, department, term, offset, coursewarePerPage);
         setShowContext(false);
         setCoursewares(coursewares);
         setResultsMessage(coursewares.length > 0 ?
           'Results from MIT\'s Canvas.' :
           `Sorry, we didn’t find any results for "${search}" term.`
         );
-         // Set number of pages
-         setPageCount(Math.ceil(totalCoursewares / coursewarePerPage));
+        // Set number of pages
+        setPageCount(Math.ceil(totalCoursewares / coursewarePerPage));
       } catch(error) {
         setIsError(true);
         setErrorMessage(`Sorry, we didn't find any results for "${search}" term.`)
@@ -63,25 +66,44 @@ export default function Home() {
       setIsLoading(false);
     };
     loadCoursewares();
-  }, [search, department, offset, setPageCount]);
+  }, [search, department, term, offset, setPageCount]);
 
   useEffect(() => {
     const loadDepartments = async () => {
       try {
           const depts = await departmentService.load();
-          let departments = [];
+          let depsOptions = [];
           depts.forEach((dept) => {
-            departments.push({
+            depsOptions.push({
               label: dept,
               value: dept
             });
           });
-          setDepartmentOptions([{ label: 'All', value: 'All' }, ...departments]);
+          setDepartmentOptions([{ label: 'All', value: 'All' }, ...depsOptions]);
       } catch(error) {
         console.log('An error occured', error);
       }
     };
     loadDepartments();
+  }, []);
+
+  useEffect(() => {
+    const loadTerms = async () => {
+      try {
+          const tms = await termService.load();
+          let tmsOptions = [];
+          tms.forEach((tm) => {
+            tmsOptions.push({
+              label: tm,
+              value: tm
+            });
+          });
+          setTermOptions([{ label: 'All', value: 'All' }, ...tmsOptions]);
+      } catch(error) {
+        console.log('An error occured', error);
+      }
+    };
+    loadTerms();
   }, []);
 
   useEffect(() => {
@@ -112,6 +134,10 @@ export default function Home() {
 
   const departmentChange = (event) => {
     setDepartment(event.currentTarget.value);
+  };
+
+  const termChange = (event) => {
+    setTerm(event.currentTarget.value);
   };
 
   const handleBrowseCourseFromCard = (url) => {
@@ -185,6 +211,7 @@ export default function Home() {
         key={shortid()}
         id={courseware.id}
         title={courseware.name}
+        term={courseware.term}
         url={courseware.url}
         instructors={courseware.teachers}
         modules={courseware.modules}
@@ -228,15 +255,26 @@ export default function Home() {
         onKeyUp={inputKeyUp}
       />
       <Button className="home__search-button" label="Search" unelevated onClick={buttonClick}/>
-      <Select
-        className="home__department-filter"
-        enhanced
-        outlined
-        label="Department"
-        value={department}
-        options={departmentOptions}
-        onChange={departmentChange}
-      />
+      <div className="home__filters">  
+        <Select
+          className="home__filter home__department-filter"
+          enhanced
+          outlined
+          label="Department"
+          value={department}
+          options={departmentOptions}
+          onChange={departmentChange}
+        />
+        <Select
+          className="home__filter home__term-filter"
+          enhanced
+          outlined
+          label="Term"
+          value={term}
+          options={termOptions}
+          onChange={termChange}
+        />
+      </div>
       <Drawer
         dir="rtl"
         modal
