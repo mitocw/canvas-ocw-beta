@@ -262,7 +262,7 @@ def search():
         if search_term:
             q = qp.parse(search_term)
             with ix.searcher() as searcher:
-                results = searcher.search(q)
+                results = searcher.search(q, limit=None)
                 for r in results:
                     id = r.fields()['id']
                     coursewares.append(all_coursewares_indexed[id])
