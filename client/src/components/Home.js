@@ -31,8 +31,9 @@ export default function Home() {
   const [term, setTerm] = useState('All');
   const [termOptions, setTermOptions] = useState([{ label: 'All', value: 'All' }]);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [coursewareUrl, setCoursewareUrl] = useState('');
   const [coursewareId, setCoursewareId] = useState('');
+  const [coursewareName, setCoursewareName] = useState('');
+  const [coursewareUrl, setCoursewareUrl] = useState('');
   const [candidate, setCandidate] = useState('yes');
   const [copyright, setCopyright] = useState('yes');
   const [comment, setComment] = useState('');
@@ -144,9 +145,10 @@ export default function Home() {
     window.open(url, '_blank');
   };
 
-  const handleViewCourseFromCard = (id, url) => {
-    setCoursewareUrl(url);
+  const handleViewCourseFromCard = (id, name, url) => {
     setCoursewareId(id);
+    setCoursewareName(name);
+    setCoursewareUrl(url);
     setDrawerOpen(true);
   };
 
@@ -154,6 +156,7 @@ export default function Home() {
     setDrawerOpen(false);
     // Reset
     setCoursewareId('');
+    setCoursewareName('');
     setCoursewareUrl('');
     setCandidate('yes');
     setCopyright('yes');
@@ -173,7 +176,7 @@ export default function Home() {
   const handleSubmit = () => {
     const createSpreadsheetRow = async () => {
       try {
-          const response = await spreadsheetService.create(coursewareId, candidate, copyright, comment);
+          const response = await spreadsheetService.create(coursewareId, coursewareName, candidate, copyright, comment);
           const newRow = new SpreadsheetRow(response);
           const rows = JSON.parse(JSON.stringify(spreadsheetRows)); // Clone
           rows.unshift(newRow);
@@ -237,7 +240,7 @@ export default function Home() {
 
   const spreadsheetRowsEl = spreadsheetRows.map((row) => (
     <div className="home__course-drawer-spreadsheet-row" key={shortid()}>
-      <div>{row.date}</div>
+      <div>{`${row.userName} ${row.date}`}</div>
       <div>Publication candidate: {row.publicationCandidate}</div>
       <div>Minimal copyright: {row.minimalCopyright}</div>
       <div>Comment: {row.comment}</div>

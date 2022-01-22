@@ -20,7 +20,7 @@ export default function CoursewareCard(props) {
   const handleLinkClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    onViewCourse(id, url);
+    onViewCourse(id, title, url);
   }
   const handleIconButtonClick = (event) => {
     event.preventDefault();

@@ -117,6 +117,7 @@ AUTH_STATE_KEY = 'auth_state'
 
 worksheet = None
 authlist = None
+user_name = ''
 
 def paginate(data, offset=0, limit=5):
     return data[offset: offset + limit]
@@ -235,6 +236,9 @@ def index():
     if is_logged_in():
         user_info = get_user_info()
         if user_info['email'] in authlist:
+            # Store user name for ulterior usage in comments
+            global user_name
+            user_name = user_info['name'] if user_info['name'] else user_info['email']
             # React client build entry point.
             index_template = Template(open('./client/build/index.html').read())
             return index_template.render()
@@ -307,18 +311,28 @@ def spreadsheet():
         response = sorted(filtered, key=lambda r: datetime.strptime(r['date'], '%m-%d-%Y %H:%M:%S.%f'), reverse=True)
     else:
         courseware_id = request.form['courseware_id']
+        courseware_name = request.form['courseware_name'] # Only used in worksheet, not client-side
         publication_candidate = request.form['publication_candidate']
         minimal_copyright = request.form['minimal_copyright']
         comment = request.form['comment']
         date = request.form['date']
         # Save new entry to Google sheets
-        worksheet.append_row([courseware_id, publication_candidate, minimal_copyright, comment, date])
+        worksheet.append_row([
+            courseware_id,
+            courseware_name,
+            publication_candidate,
+            minimal_copyright,
+            comment,
+            user_name,
+            date
+        ])
         # Build response
         response = {
             'courseware_id': courseware_id,
             'publication_candidate': publication_candidate,
             'minimal_copyright': minimal_copyright,
             'comment': comment,
+            'user_name': user_name,
             'date': date
         }
 
