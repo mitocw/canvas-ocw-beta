@@ -118,6 +118,7 @@ AUTH_STATE_KEY = 'auth_state'
 worksheet = None
 authlist = None
 user_name = ''
+user_picture = ''
 
 def paginate(data, offset=0, limit=5):
     return data[offset: offset + limit]
@@ -237,8 +238,9 @@ def index():
         user_info = get_user_info()
         if user_info['email'] in authlist:
             # Store user name for ulterior usage in comments
-            global user_name
+            global user_name, user_picture
             user_name = user_info['name'] if user_info['name'] else user_info['email']
+            user_picture = user_info['picture'] if user_info['picture'] else ''
             # React client build entry point.
             index_template = Template(open('./client/build/index.html').read())
             return index_template.render()
@@ -323,6 +325,7 @@ def spreadsheet():
             publication_candidate,
             minimal_copyright,
             comment,
+            user_picture,
             user_name,
             date
         ])
@@ -332,6 +335,7 @@ def spreadsheet():
             'publication_candidate': publication_candidate,
             'minimal_copyright': minimal_copyright,
             'comment': comment,
+            'user_picture': user_picture,
             'user_name': user_name,
             'date': date
         }

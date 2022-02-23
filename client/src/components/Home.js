@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MdFileUpload, MdOpenInNew } from 'react-icons/md';
+import { MdAccountCircle, MdFileUpload, MdOpenInNew } from 'react-icons/md';
 import ReactPaginate from 'react-paginate';
 import { Button } from '@rmwc/button';
 import { Drawer, DrawerContent } from '@rmwc/drawer';
@@ -238,14 +238,22 @@ export default function Home() {
     );
   }
 
-  const spreadsheetRowsEl = spreadsheetRows.map((row) => (
-    <div className="home__course-drawer-spreadsheet-row" key={shortid()}>
-      <div>{`${row.userName} ${row.date}`}</div>
-      <div>Publication candidate: {row.publicationCandidate}</div>
-      <div>Minimal copyright: {row.minimalCopyright}</div>
-      <div>Comment: {row.comment}</div>
-    </div>
-  ))
+  const spreadsheetRowsEl = spreadsheetRows.map((row) => {
+    const userPicture = row.userPicture === '' ? 
+      <MdAccountCircle className="home__course-drawer-user-icon" /> : 
+      <img className="home__course-drawer-user-picture" src={`${row.userPicture}`} alt="User" />;
+    return (
+      <div className="home__course-drawer-spreadsheet-row" key={shortid()}>
+        <div className="home__course-drawer-user-infos-date">
+          {userPicture}
+          <span>{`${row.userName} ${row.date}`}</span>
+        </div>
+        <div>Publication candidate: {row.publicationCandidate}</div>
+        <div>Minimal copyright: {row.minimalCopyright}</div>
+        <div>Comment: {row.comment}</div>
+      </div>
+    );
+  });
 
   return (
     <main className="home">

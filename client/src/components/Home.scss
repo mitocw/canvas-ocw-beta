@@ -158,6 +158,25 @@
     overflow: auto;
   }
 
+  &__course-drawer-user-infos-date {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  &__course-drawer-user-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-right: 0.5rem;
+  }
+
+  &__course-drawer-user-picture {
+    width: 3rem;
+    height: 3rem;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+  }
+
   &__pagination {
     display: flex;
     list-style: none;
